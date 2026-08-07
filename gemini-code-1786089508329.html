@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจองพื้นที่ตลาด (Real-time)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Architectural Styling - รูปแบบอาคาร */
+        .building-hatch {
+            background-color: #fff;
+            background-image: repeating-linear-gradient(45deg, #cbd5e1 0, #cbd5e1 1px, transparent 1px, transparent 6px);
+        }
+        .plan-border {
+            border: 1.5px solid #475569;
+        }
+        /* ลบ Scrollbar ออกทั้งหมด */
+        ::-webkit-scrollbar { display: none; }
+        * { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div class="max-w-6xl mx-auto p-4 md:p-6 lg:p-8">
+        
+        <header class="mb-6 text-center md:text-left flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-900 mb-2">ระบบจองพื้นที่ตลาด</h1>
+                <p class="text-slate-500 text-sm">โซน B และ C (จำกัด 2 ล็อค/แผนก) • ระบบอัปเดตแบบ Real-time</p>
+            </div>
+            
+            <!-- Legend -->
+            <div class="mt-4 md:mt-0 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-medium border p-3 rounded-lg bg-slate-50">
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded-sm bg-yellow-300 border border-yellow-400"></div>
+                    <span>B (ว่าง)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded-sm bg-lime-400 border border-lime-500"></div>
+                    <span>C (ว่าง)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded-sm bg-blue-500 border border-blue-600"></div>
+                    <span>คุณกำลังเลือก</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded-sm bg-orange-400 border border-orange-500"></div>
+                    <span>คนอื่นเลือกอยู่</span>
+                </div>
+                <div class="flex items-center gap-2 sm:col-span-4 justify-center mt-1">
+                    <div class="w-4 h-4 rounded-sm bg-slate-300 border border-slate-400"></div>
+                    <span>จองสำเร็จแล้ว</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Admin Panel -->
+        <div id="admin-panel" class="hidden mb-6 bg-slate-800 text-white p-5 rounded-2xl shadow-sm flex flex-col gap-5">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h2 class="text-lg font-bold flex items-center gap-3">
+                        โหมดผู้ดูแลระบบ (Admin)
+                        <span id="admin-stats-badge" class="bg-blue-600 text-white text-[11px] px-2.5 py-1 rounded-full shadow-sm font-medium">จองแล้ว 0/50 ล็อค</span>
+                    </h2>
+                    <p class="text-slate-300 text-xs mt-1">แก้ไขข้อมูลรายล็อค, ลบข้อมูลรายแผนก และดาวน์โหลดรายงาน</p>
+                </div>
+                <div class="flex gap-2 w-full md:w-auto">
+                    <button id="clear-data-btn" class="flex-1 md:flex-none bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-xs font-medium transition-colors">
+                        ล้างข้อมูลทั้งหมด
+                    </button>
+                    <button id="export-excel-btn" class="flex-1 md:flex-none bg-emerald-500 hover:bg-emerald-600 px-4 py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        โหลด Excel
+                    </button>
+                </div>
+            </div>
+
+            <!-- จัดการรายแผนก -->
+            <div class="bg-slate-700/50 p-4 rounded-xl border border-slate-600 flex flex-col sm:flex-row gap-3 items-end">
+                <div class="flex-1 w-full">
+                    <label class="block text-[11px] font-medium text-slate-300 mb-1.5">จัดการรายแผนก (ยกเลิกจองเหมาแผนก)</label>
+                    <select id="admin-dept-manage" class="w-full border border-slate-500 bg-slate-700 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white">
+                        <option value="">-- เลือกแผนกที่ต้องการลบข้อมูล --</option>
+                        <option value="แผนกช่างยนต์">แผนกช่างยนต์</option>
+                        <option value="แผนกช่างกลโรงงาน">แผนกช่างกลโรงงาน</option>
+                        <option value="แผนกวิชาเขียนแบบเครื่องกล">แผนกวิชาเขียนแบบเครื่องกล</option>
+                        <option value="แผนกวิชาเทคนิคการผลิต">แผนกวิชาเทคนิคการผลิต</option>
+                        <option value="แผนกช่างเชื่อมโลหะ">แผนกช่างเชื่อมโลหะ</option>
+                        <option value="แผนกวิชาไฟฟ้ากำลัง">แผนกวิชาไฟฟ้ากำลัง</option>
+                        <option value="แผนกวิชาช่างอิเล็กทรอนิกส์">แผนกวิชาช่างอิเล็กทรอนิกส์</option>
+                        <option value="แผนกวิชาช่างก่อสร้าง">แผนกวิชาช่างก่อสร้าง</option>
+                        <option value="แผนกวิชาเทคนิคสถาปัตย์">แผนกวิชาเทคนิคสถาปัตย์</option>
+                        <option value="แผนกวิชาเทคนิคพื้นฐาน">แผนกวิชาเทคนิคพื้นฐาน</option>
+                        <option value="แผนกวิชาอาหารและโภชนาการ">แผนกวิชาอาหารและโภชนาการ</option>
+                        <option value="แผนกวิชาคหกรรมศาสตร์">แผนกวิชาคหกรรมศาสตร์</option>
+                        <option value="แผนกวิชาผ้าและเครื่องแต่งกาย">แผนกวิชาผ้าและเครื่องแต่งกาย</option>
+                        <option value="แผนกวิชาวิจิตรศิลป์">แผนกวิชาวิจิตรศิลป์</option>
+                        <option value="แผนกวิชาออกแบบ">แผนกวิชาออกแบบ</option>
+                        <option value="แผนกวิชาคอมพิวเตอร์กราฟฟิก">แผนกวิชาคอมพิวเตอร์กราฟฟิก</option>
+                        <option value="แผนกวิชาศิลปกรรมเซรามิก">แผนกวิชาศิลปกรรมเซรามิก</option>
+                        <option value="แผนกวิชาการบัญชี">แผนกวิชาการบัญชี</option>
+                        <option value="แผนกวิชาการจัดการสำนักงาน">แผนกวิชาการจัดการสำนักงาน</option>
+                        <option value="แผนกวิชาการตลาด">แผนกวิชาการตลาด</option>
+                        <option value="แผนกวิชาคอมพิวเตอร์ธุรกิจ">แผนกวิชาคอมพิวเตอร์ธุรกิจ</option>
+                        <option value="แผนกวิชาการจัดการโลจิสติกส์">แผนกวิชาการจัดการโลจิสติกส์</option>
+                        <option value="แผนกวิชาการโรงแรม">แผนกวิชาการโรงแรม</option>
+                    </select>
+                </div>
+                <button id="admin-delete-dept-btn" class="bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white border border-red-500/50 px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full sm:w-auto h-10">
+                    ลบข้อมูลแผนกนี้
+                </button>
+            </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-6">
+            
+            <div class="w-full lg:w-3/4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100 relative">
+                <h2 class="text-lg font-semibold flex items-center gap-2 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
+                    แผนผังพื้นที่
+                </h2>
+                <p class="text-xs text-slate-500 mb-4">* เอาเมาส์ชี้แล้ว <span class="font-bold text-blue-600">คลิกที่แผนที่ 1 ครั้ง</span> เพื่อซูมเข้าไปใกล้ๆ</p>
+                
+                <!-- Fixed Size Viewport - No Scroll -->
+                <div class="w-full h-[450px] sm:h-[550px] overflow-hidden rounded-xl border border-slate-200 bg-slate-50 relative cursor-crosshair" id="mapViewport">
+                    
+                    <!-- Zoom Box (Magnifier Lens) -->
+                    <div id="zoom-box" class="absolute pointer-events-none hidden z-40" style="width: 250px; height: 180px;">
+                        <div class="w-full h-full border-2 border-dashed border-blue-500 bg-blue-500/10 rounded-lg shadow-[0_0_0_9999px_rgba(0,0,0,0.1)]"></div>
+                        <div class="absolute inset-0 flex items-center justify-center text-blue-600 opacity-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
+                        </div>
+                    </div>
+
+                    <!-- Zoom Out Button (Appears when zoomed) -->
+                    <button id="zoom-out-btn" class="absolute top-4 right-4 bg-white/95 px-5 py-2.5 rounded-xl shadow-lg border border-slate-200 text-sm font-semibold text-slate-800 hidden hover:bg-slate-50 z-50 flex items-center gap-2 transition-transform active:scale-95">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" /></svg>
+                        ย่อแผนที่กลับ
+                    </button>
+                    
+                    <!-- Wrapper for scaling -->
+                    <div id="mapScaleWrapper" class="w-full h-full transform transition-transform duration-500 ease-out flex items-center justify-center origin-center">
+                        <!-- Actual Map Canvas (Fixed 1550x750) -->
+                        <div class="relative bg-white shadow-sm flex-shrink-0" id="mapInner" style="width: 1550px; height: 750px; transform-origin: center;">
+                            
+                            <!-- Grid background -->
+                            <div class="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20" style="background-image: linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+                            <div class="absolute left-[-20px] top-[-10px] w-[210px] h-[340px] plan-border building-hatch flex flex-col justify-end items-end p-2 shadow-sm z-10">
+                                <div class="w-6 h-10 border-l border-t border-b border-slate-500 mb-8 mr-[-2px] bg-white opacity-90 relative right-[-9px]"></div>
+                                <div class="w-6 h-10 border-l border-t border-b border-slate-500 mb-4 mr-[-2px] bg-white opacity-90 relative right-[-9px]"></div>
+                            </div>
+                            <div class="absolute left-[-20px] top-[480px] w-[210px] h-[250px] plan-border building-hatch shadow-sm z-10">
+                                <div class="absolute right-[-1.5px] top-[40px] w-12 h-20 border-t border-b border-r border-slate-500 bg-white"></div>
+                            </div>
+                            <div class="absolute left-[190px] top-[100px] w-[420px] h-[230px] plan-border bg-white shadow-sm flex items-center justify-center z-10">
+                                <span class="text-slate-400 text-3xl font-bold tracking-widest">อาคาร 1</span>
+                            </div>
+                            <div class="absolute left-[610px] top-[125px] w-[850px] h-[205px] plan-border bg-white shadow-sm flex items-center justify-center z-10">
+                                <span class="text-slate-400 text-3xl font-bold tracking-widest">อาคาร 2</span>
+                            </div>
+
+                            <div class="absolute left-0 top-[375px] w-[190px] h-[1.5px] bg-slate-500"></div>
+                            <div class="absolute left-[190px] top-[100px] w-[1.5px] h-[100px] bg-slate-500"></div>
+
+                            <!-- Row B -->
+                            <div class="absolute left-[200px] top-[365px] flex gap-[4px] items-center z-20 pointer-events-none transition-all duration-300" id="row-b"></div>
+                            <!-- Row C -->
+                            <div class="absolute left-[300px] top-[415px] flex gap-[4px] items-center z-20 pointer-events-none transition-all duration-300" id="row-c"></div>
+                            
+                            <div class="absolute left-[300px] top-[450px] w-[1160px] h-[280px] border-t-[8px] border-l-[3px] border-slate-500 border-double bg-white/40">
+                                 <div class="absolute left-[20px] top-[20px] w-[1120px] h-[240px] border border-slate-400 bg-white shadow-sm"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full lg:w-1/4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 sticky top-6">
+                    <h2 class="text-lg font-semibold mb-3 border-b pb-2 border-slate-100 text-slate-800">ข้อมูลการจอง</h2>
+                    
+                    <div id="selected-list" class="min-h-[50px] mb-3 text-sm text-slate-600 flex flex-col gap-2">
+                        <div class="text-center text-slate-400 py-3 italic" id="empty-state">ยังไม่ได้เลือกล็อค</div>
+                    </div>
+
+                    <div id="booking-form-container" class="border-t border-slate-100 pt-3 flex flex-col gap-3">
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-600 mb-1">แผนก <span class="text-red-500">*</span></label>
+                            <select id="input-department" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                                <option value="">-- เลือกแผนก --</option>
+                                <option value="แผนกช่างยนต์">แผนกช่างยนต์</option>
+                                <option value="แผนกช่างกลโรงงาน">แผนกช่างกลโรงงาน</option>
+                                <option value="แผนกวิชาเขียนแบบเครื่องกล">แผนกวิชาเขียนแบบเครื่องกล</option>
+                                <option value="แผนกวิชาเทคนิคการผลิต">แผนกวิชาเทคนิคการผลิต</option>
+                                <option value="แผนกช่างเชื่อมโลหะ">แผนกช่างเชื่อมโลหะ</option>
+                                <option value="แผนกวิชาไฟฟ้ากำลัง">แผนกวิชาไฟฟ้ากำลัง</option>
+                                <option value="แผนกวิชาช่างอิเล็กทรอนิกส์">แผนกวิชาช่างอิเล็กทรอนิกส์</option>
+                                <option value="แผนกวิชาช่างก่อสร้าง">แผนกวิชาช่างก่อสร้าง</option>
+                                <option value="แผนกวิชาเทคนิคสถาปัตย์">แผนกวิชาเทคนิคสถาปัตย์</option>
+                                <option value="แผนกวิชาเทคนิคพื้นฐาน">แผนกวิชาเทคนิคพื้นฐาน</option>
+                                <option value="แผนกวิชาอาหารและโภชนาการ">แผนกวิชาอาหารและโภชนาการ</option>
+                                <option value="แผนกวิชาคหกรรมศาสตร์">แผนกวิชาคหกรรมศาสตร์</option>
+                                <option value="แผนกวิชาผ้าและเครื่องแต่งกาย">แผนกวิชาผ้าและเครื่องแต่งกาย</option>
+                                <option value="แผนกวิชาวิจิตรศิลป์">แผนกวิชาวิจิตรศิลป์</option>
+                                <option value="แผนกวิชาออกแบบ">แผนกวิชาออกแบบ</option>
+                                <option value="แผนกวิชาคอมพิวเตอร์กราฟฟิก">แผนกวิชาคอมพิวเตอร์กราฟฟิก</option>
+                                <option value="แผนกวิชาศิลปกรรมเซรามิก">แผนกวิชาศิลปกรรมเซรามิก</option>
+                                <option value="แผนกวิชาการบัญชี">แผนกวิชาการบัญชี</option>
+                                <option value="แผนกวิชาการจัดการสำนักงาน">แผนกวิชาการจัดการสำนักงาน</option>
+                                <option value="แผนกวิชาการตลาด">แผนกวิชาการตลาด</option>
+                                <option value="แผนกวิชาคอมพิวเตอร์ธุรกิจ">แผนกวิชาคอมพิวเตอร์ธุรกิจ</option>
+                                <option value="แผนกวิชาการจัดการโลจิสติกส์">แผนกวิชาการจัดการโลจิสติกส์</option>
+                                <option value="แผนกวิชาการโรงแรม">แผนกวิชาการโรงแรม</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-600 mb-1">ชื่อร้าน <span class="text-red-500">*</span></label>
+                            <input type="text" id="input-shop" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-600 mb-1">สินค้าที่ขาย <span class="text-red-500">*</span></label>
+                            <input type="text" id="input-product" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-600 mb-1">ชื่อผู้รับผิดชอบ <span class="text-red-500">*</span></label>
+                            <input type="text" id="input-name" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-600 mb-1">เบอร์โทรติดต่อ <span class="text-red-500">*</span></label>
+                            <input type="tel" id="input-phone" maxlength="12" placeholder="08X-XXX-XXXX" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-100 pt-4 mt-4">
+                        <button id="book-btn" disabled class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium py-3 rounded-xl transition-colors shadow-sm">
+                            ยืนยันการจอง
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- General Modal -->
+    <div id="custom-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[100] opacity-0 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full mx-4 transform scale-95 transition-transform duration-300" id="modal-content-box">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-slate-100 mb-4" id="modal-icon-bg"></div>
+                <h3 class="text-lg leading-6 font-bold text-slate-900" id="modal-title">แจ้งเตือน</h3>
+                <div class="mt-3">
+                    <p class="text-sm text-slate-500 whitespace-pre-line" id="modal-message">ข้อความ</p>
+                </div>
+            </div>
+            <div class="mt-6 text-center">
+                <button type="button" id="close-modal-btn" class="inline-flex justify-center w-full rounded-xl px-4 py-3 bg-slate-900 text-sm font-medium text-white hover:bg-slate-800 transition-colors">
+                    ตกลง
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="admin-login-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-[110]">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full mx-4 text-center relative">
+            <h3 class="text-xl font-bold mb-2">เข้าสู่ระบบแอดมิน</h3>
+            <p class="text-xs text-slate-500 mb-5">กรุณาใส่รหัสผ่านเพื่อจัดการข้อมูล</p>
+            <input type="password" id="admin-pwd-input" placeholder="รหัสผ่าน" class="w-full border border-slate-300 rounded-lg p-3 text-center mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="admin-login-btn" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-medium transition-colors">เข้าสู่ระบบ</button>
+        </div>
+    </div>
+
+    <!-- Admin Change Password Modal -->
+    <div id="admin-change-pwd-modal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden items-center justify-center z-[120]">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full mx-4 text-center">
+            <h3 class="text-lg font-bold mb-2 text-red-600">ตั้งค่ารหัสผ่านใหม่</h3>
+            <p class="text-xs text-slate-500 mb-4">เพื่อความปลอดภัย กรุณาเปลี่ยนรหัสผ่าน<br>จากการเข้าใช้งานครั้งแรก (ความยาว 6 ตัวขึ้นไป)</p>
+            <input type="password" id="admin-new-pwd-input" placeholder="รหัสผ่านใหม่" class="w-full border border-slate-300 rounded-lg p-3 text-center mb-4 focus:outline-none focus:ring-2 focus:ring-red-500">
+            <button id="admin-save-pwd-btn" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-medium transition-colors">บันทึกรหัสผ่าน</button>
+        </div>
+    </div>
+
+    <!-- Edit Modal (ฟอร์มแก้ไขข้อมูล) -->
+    <div id="edit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[90] opacity-0 transition-opacity duration-300">
+        <div class="bg-white p-6 rounded-2xl shadow-xl max-w-sm w-full mx-4 relative" id="edit-modal-content">
+            <button id="close-edit-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <h3 class="text-lg font-bold mb-4 text-slate-800" id="edit-modal-title">แก้ไขข้อมูลล็อค</h3>
+            
+            <!-- Step 1: Verify (ข้ามได้ถ้าเป็นแอดมิน) -->
+            <div id="edit-verify-step">
+                <p class="text-sm text-slate-500 mb-4">กรุณากรอก <span class="font-bold text-red-500">ชื่อ และ เบอร์โทรเดิม</span> เพื่อยืนยันสิทธิ์การแก้ไขข้อมูล</p>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-600 mb-1">ชื่อผู้รับผิดชอบ (เดิม)</label>
+                        <input type="text" id="verify-name" placeholder="ไม่ต้องใส่คำนำหน้าก็ได้" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-600 mb-1">เบอร์โทรติดต่อ (เดิม)</label>
+                        <input type="tel" id="verify-phone" maxlength="12" placeholder="08X-XXX-XXXX" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-blue-500">
+                    </div>
+                    <button id="verify-btn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-2.5 rounded-xl mt-2 transition-colors">
+                        ตรวจสอบสิทธิ์
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Edit Form -->
+            <div id="edit-form-step" class="hidden">
+                <p class="text-xs text-emerald-600 mb-3 bg-emerald-50 p-2 rounded-lg border border-emerald-100 flex items-center gap-1" id="edit-success-msg">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    ยืนยันสิทธิ์สำเร็จ! แก้ไขข้อมูลด้านล่างได้เลย
+                </p>
+                <div class="space-y-3 max-h-[50vh] overflow-y-auto px-1 py-1">
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-600 mb-1">ชื่อร้าน</label>
+                        <input type="text" id="edit-shop" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-600 mb-1">สินค้าที่ขาย</label>
+                        <input type="text" id="edit-product" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-600 mb-1">ชื่อผู้รับผิดชอบ (อัปเดตใหม่)</label>
+                        <input type="text" id="edit-new-name" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-600 mb-1">เบอร์โทรติดต่อ (อัปเดตใหม่)</label>
+                        <input type="tel" id="edit-new-phone" maxlength="12" placeholder="08X-XXX-XXXX" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div class="flex gap-2 mt-5">
+                    <button id="cancel-edit-btn" class="flex-1 bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium py-2.5 rounded-xl transition-colors">ปิด</button>
+                    <button id="save-edit-btn" class="flex-1 bg-blue-600 text-white hover:bg-blue-700 font-medium py-2.5 rounded-xl transition-colors">บันทึกข้อมูล</button>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 text-center">
+                     <button id="delete-stall-btn" class="text-xs text-red-500 hover:text-red-700 font-medium flex items-center justify-center gap-1 w-full">
+                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                         ยกเลิกการจองล็อคนี้ (คืนพื้นที่)
+                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, getDocs, deleteDoc, serverTimestamp, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase Config ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCIY2PC6et4GNGZogueTghAhn68lueK-IY",
+            authDomain: "maket-79cf5.firebaseapp.com",
+            projectId: "maket-79cf5",
+            storageBucket: "maket-79cf5.firebasestorage.app",
+            messagingSenderId: "689569650814",
+            appId: "1:689569650814:web:cce3c0fd25647a319b602f",
+            measurementId: "G-KWE4X8M2WZ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        let currentUser = null;
+        let globalStallsData = {}; 
+        let isFirebaseReady = false;
+        let isAdminAuthenticated = false; // สถานะแอดมิน
+
+        const artifactAppId = typeof __app_id !== 'undefined' ? __app_id : 'market-booking-app';
+        const stallsRef = collection(db, 'artifacts', artifactAppId, 'public', 'data', 'stalls');
+        const adminSettingsRef = doc(db, 'artifacts', artifactAppId, 'public', 'adminSettings');
+
+        // --- UI Variables ---
+        const rowBContainer = document.getElementById('row-b');
+        const rowCContainer = document.getElementById('row-c');
+        const bookBtn = document.getElementById('book-btn');
+        const selectedListEl = document.getElementById('selected-list');
+        const emptyStateEl = document.getElementById('empty-state');
+        
+        // Modals
+        const modal = document.getElementById('custom-modal');
+        const modalContentBox = document.getElementById('modal-content-box');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalIconBg = document.getElementById('modal-icon-bg');
+
+        const editModal = document.getElementById('edit-modal');
+        const editVerifyStep = document.getElementById('edit-verify-step');
+        const editFormStep = document.getElementById('edit-form-step');
+        const editModalTitle = document.getElementById('edit-modal-title');
+        let currentEditStallId = null;
+        let currentEditStallData = null;
+
+        // จัดรูปแบบเบอร์โทร
+        function formatPhoneNumber(e) {
+            let val = e.target.value.replace(/\D/g, '');
+            let match = val.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
+            if (match) {
+                e.target.value = !match[2] ? match[1] : match[1] + '-' + match[2] + (match[3] ? '-' + match[3] : '');
+            }
+        }
+        document.getElementById('input-phone').addEventListener('input', formatPhoneNumber);
+        document.getElementById('verify-phone').addEventListener('input', formatPhoneNumber);
+        document.getElementById('edit-new-phone').addEventListener('input', formatPhoneNumber);
+
+        const allStalls = [];
+        for(let i=1; i<=26; i++) allStalls.push(`B${i}`);
+        for(let i=1; i<=24; i++) allStalls.push(`C${i}`);
+
+        // --- Init App ---
+        async function initApp() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    try {
+                        const cred = await signInWithCustomToken(auth, __initial_auth_token);
+                        currentUser = cred.user;
+                    } catch (tokenError) {
+                        const cred = await signInAnonymously(auth);
+                        currentUser = cred.user;
+                    }
+                } else {
+                    const cred = await signInAnonymously(auth);
+                    currentUser = cred.user;
+                }
+                if (!currentUser) return;
+                
+                onSnapshot(stallsRef, (snapshot) => {
+                    globalStallsData = {};
+                    snapshot.forEach(doc => {
+                        globalStallsData[doc.id] = doc.data();
+                    });
+                    isFirebaseReady = true;
+                    renderMap(); 
+                    updateSidebar();
+                    updateAdminStats(); // อัปเดตสถิติของแอดมิน
+                });
+                
+                checkAdminMode();
+            } catch (err) {
+                console.error("Auth Error:", err);
+            }
+        }
+
+        function updateAdminStats() {
+            const bookedCount = Object.values(globalStallsData).filter(d => d.status === 'booked').length;
+            document.getElementById('admin-stats-badge').innerText = `จองแล้ว ${bookedCount}/50 ล็อค`;
+        }
+
+        // --- Render Map ---
+        function renderMap() {
+            rowBContainer.innerHTML = '';
+            rowCContainer.innerHTML = '';
+
+            allStalls.forEach(id => {
+                const zone = id.startsWith('B') ? 'B' : 'C';
+                const stallData = globalStallsData[id];
+                
+                let status = 'available'; 
+                let owner = null;
+
+                if (stallData) {
+                    status = stallData.status;
+                    owner = stallData.userId;
+                }
+
+                const btn = document.createElement('button');
+                btn.className = `relative w-[46px] h-[30px] flex items-center justify-center text-[11px] font-medium border border-slate-600 transition-all duration-200 select-none`;
+                
+                if (status === 'booked') {
+                    btn.classList.add('bg-slate-300', 'text-slate-500', 'opacity-80', 'hover:bg-slate-400', 'cursor-pointer');
+                    btn.innerHTML = `<span class="z-10">${id}</span>
+                                     <div class="absolute inset-0 pointer-events-none opacity-50" style="background: linear-gradient(45deg, transparent 48%, #64748b 49%, #64748b 51%, transparent 52%), linear-gradient(-45deg, transparent 48%, #64748b 49%, #64748b 51%, transparent 52%);"></div>`;
+                    
+                    if(isAdminAuthenticated) {
+                        btn.title = `แผนก: ${stallData.department}\nร้าน: ${stallData.shopName}\nผู้ติดต่อ: ${stallData.contactName} (${stallData.phone})`;
+                        btn.onclick = (e) => {
+                            if (!isZoomed) return;
+                            e.stopPropagation();
+                            openEditModal(id, stallData, true); // Admin mode
+                        };
+                    } else {
+                        btn.onclick = (e) => {
+                            if (!isZoomed) return;
+                            e.stopPropagation();
+                            openEditModal(id, stallData, false); // User mode
+                        };
+                    }
+                } else if (status === 'locked') {
+                    if (owner === currentUser.uid) {
+                        btn.classList.add('bg-blue-500', 'text-white', 'border-blue-700', 'shadow-inner', 'transform', 'scale-95');
+                        btn.innerText = id;
+                        btn.onclick = (e) => { 
+                            if (!isZoomed) return;
+                            e.stopPropagation(); 
+                            toggleStall(id, status, owner); 
+                        };
+                    } else {
+                        btn.classList.add('bg-orange-400', 'text-white', 'cursor-not-allowed');
+                        btn.innerHTML = `<span class="opacity-30">${id}</span><svg class="w-3 h-3 absolute" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>`;
+                        btn.onclick = (e) => { 
+                            if (!isZoomed) return;
+                            e.stopPropagation(); 
+                            showModal('พื้นที่ไม่ว่าง', 'กำลังมีผู้ใช้งานท่านอื่นเลือกพื้นที่นี้อยู่ กรุณาเลือกล็อคอื่น', 'warning'); 
+                        };
+                    }
+                } else {
+                    if (zone === 'B') btn.classList.add('bg-yellow-300', 'text-slate-800', 'hover:bg-yellow-400');
+                    if (zone === 'C') btn.classList.add('bg-lime-400', 'text-slate-800', 'hover:bg-lime-500');
+                    btn.innerText = id;
+                    btn.onclick = (e) => { 
+                        if (!isZoomed) return;
+                        e.stopPropagation(); 
+                        toggleStall(id, status, owner); 
+                    };
+                }
+
+                if (zone === 'B') rowBContainer.appendChild(btn);
+                else rowCContainer.appendChild(btn);
+            });
+        }
+
+        // --- Logic: Click Stall ---
+        async function toggleStall(id, currentStatus, owner) {
+            if (!isFirebaseReady) return;
+            
+            // แอดมินไม่สามารถจองพื้นที่ได้
+            if (isAdminAuthenticated) {
+                showModal('แจ้งเตือน', 'แอดมินไม่สามารถจองพื้นที่ได้\nคุณสามารถแก้ไข หรือลบข้อมูลได้อย่างเดียว', 'warning');
+                return;
+            }
+
+            try {
+                if (currentStatus === 'locked' && owner === currentUser.uid) {
+                    await deleteDoc(doc(stallsRef, id));
+                } else if (currentStatus === 'available') {
+                    const myLocks = Object.keys(globalStallsData).filter(key => 
+                        globalStallsData[key].userId === currentUser.uid && 
+                        globalStallsData[key].status === 'locked'
+                    );
+                    
+                    if (myLocks.length >= 2) {
+                        showModal('จำกัดสิทธิ์', 'คุณสามารถเลือกจองได้สูงสุด 2 ล็อคเท่านั้น', 'warning');
+                        return;
+                    }
+
+                    await setDoc(doc(stallsRef, id), {
+                        status: 'locked',
+                        userId: currentUser.uid,
+                        timestamp: serverTimestamp()
+                    });
+                }
+            } catch (error) {
+                console.error("Lock error:", error);
+            }
+        }
+
+        // --- Logic: Sidebar Update ---
+        function updateSidebar() {
+            const myLocks = Object.keys(globalStallsData).filter(key => 
+                globalStallsData[key].userId === currentUser.uid && 
+                globalStallsData[key].status === 'locked'
+            ).sort((a,b) => a.localeCompare(b, undefined, {numeric: true}));
+
+            if (myLocks.length === 0) {
+                selectedListEl.innerHTML = '';
+                selectedListEl.appendChild(emptyStateEl);
+                bookBtn.disabled = true;
+            } else {
+                selectedListEl.innerHTML = '';
+                myLocks.forEach(id => {
+                    const item = document.createElement('div');
+                    item.className = 'flex justify-between items-center p-2 bg-blue-50 rounded border border-blue-100';
+                    item.innerHTML = `
+                        <span class="font-medium text-blue-700">ล็อค ${id}</span>
+                        <button class="text-slate-400 hover:text-red-500 p-1 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    `;
+                    item.querySelector('button').onclick = () => deleteDoc(doc(stallsRef, id));
+                    selectedListEl.appendChild(item);
+                });
+                bookBtn.disabled = false;
+            }
+        }
+
+        // --- Logic: Submit Booking ---
+        bookBtn.onclick = async () => {
+            const myLocks = Object.keys(globalStallsData).filter(key => 
+                globalStallsData[key].userId === currentUser.uid && 
+                globalStallsData[key].status === 'locked'
+            );
+            if (myLocks.length === 0) return;
+
+            const dept = document.getElementById('input-department').value;
+            const shop = document.getElementById('input-shop').value.trim();
+            const product = document.getElementById('input-product').value.trim();
+            const name = document.getElementById('input-name').value.trim();
+            const phone = document.getElementById('input-phone').value.trim();
+
+            if (!dept || !shop || !product || !name || !phone) {
+                showModal('ข้อมูลไม่ครบ', 'กรุณากรอกข้อมูลในฟอร์มให้ครบถ้วน', 'warning');
+                return;
+            }
+
+            const phoneDigits = phone.replace(/\D/g, '');
+            if (phoneDigits.length !== 10) {
+                showModal('เบอร์โทรไม่ถูกต้อง', 'กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก', 'warning');
+                return;
+            }
+
+            const deptBookedCount = Object.values(globalStallsData).filter(data => 
+                data.status === 'booked' && data.department === dept
+            ).length;
+
+            if (deptBookedCount + myLocks.length > 2) {
+                showModal('โควต้าเต็ม', `แผนก "${dept}" มีการจองพื้นที่ไปแล้ว ${deptBookedCount} ล็อค\n(จำกัดสูงสุด 2 ล็อค/แผนก)`, 'error');
+                return;
+            }
+
+            bookBtn.disabled = true;
+            bookBtn.innerHTML = 'กำลังบันทึกข้อมูล...';
+
+            try {
+                for (const id of myLocks) {
+                    await updateDoc(doc(stallsRef, id), {
+                        status: 'booked',
+                        department: dept,
+                        shopName: shop,
+                        product: product,
+                        contactName: name,
+                        phone: phone,
+                        timestamp: serverTimestamp()
+                    });
+                }
+                
+                document.getElementById('input-shop').value = '';
+                document.getElementById('input-product').value = '';
+                document.getElementById('input-name').value = '';
+                document.getElementById('input-phone').value = '';
+                
+                bookBtn.innerHTML = 'ยืนยันการจอง';
+                showModal('สำเร็จ!', `บันทึกการจองพื้นที่ ${myLocks.join(', ')} เรียบร้อยแล้ว`, 'success');
+            } catch (err) {
+                showModal('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้', 'error');
+                bookBtn.disabled = false;
+                bookBtn.innerHTML = 'ยืนยันการจอง';
+            }
+        };
+
+        // --- UI Modal Logic ---
+        function showModal(title, message, type = 'success') {
+            modalTitle.innerText = title;
+            modalMessage.innerText = message;
+            
+            if (type === 'success') {
+                modalIconBg.className = "mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-emerald-100 mb-4";
+                modalIconBg.innerHTML = `<svg class="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
+            } else if (type === 'warning') {
+                modalIconBg.className = "mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-yellow-100 mb-4";
+                modalIconBg.innerHTML = `<svg class="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
+            } else {
+                modalIconBg.className = "mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-red-100 mb-4";
+                modalIconBg.innerHTML = `<svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>`;
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContentBox.classList.remove('scale-95');
+            }, 10);
+        }
+
+        document.getElementById('close-modal-btn').onclick = () => {
+            modal.classList.add('opacity-0');
+            modalContentBox.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        };
+
+        // --- EDIT MODAL LOGIC (ระบบแก้ไขข้อมูล) ---
+        function openEditModal(id, data, isAdmin = false) {
+            currentEditStallId = id;
+            currentEditStallData = data;
+            
+            editModalTitle.innerText = `แก้ไขข้อมูลล็อค ${id}`;
+            document.getElementById('verify-name').value = '';
+            document.getElementById('verify-phone').value = '';
+            
+            if (isAdmin) {
+                // แอดมินข้ามสเต็ปยืนยันไปเลย
+                editVerifyStep.classList.add('hidden');
+                editFormStep.classList.remove('hidden');
+                document.getElementById('edit-success-msg').innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg> สิทธิ์ผู้ดูแลระบบ: แก้ไขข้อมูลได้ทันที`;
+                
+                document.getElementById('edit-shop').value = currentEditStallData.shopName;
+                document.getElementById('edit-product').value = currentEditStallData.product;
+                document.getElementById('edit-new-name').value = currentEditStallData.contactName;
+                document.getElementById('edit-new-phone').value = currentEditStallData.phone;
+            } else {
+                // ผู้ใช้ทั่วไปต้องยืนยันตัวตนก่อน
+                editVerifyStep.classList.remove('hidden');
+                editFormStep.classList.add('hidden');
+            }
+            
+            editModal.classList.remove('hidden');
+            editModal.classList.add('flex');
+            setTimeout(() => { editModal.classList.remove('opacity-0'); }, 10);
+        }
+        
+        function closeEditModal() {
+            editModal.classList.add('opacity-0');
+            setTimeout(() => {
+                editModal.classList.add('hidden');
+                editModal.classList.remove('flex');
+                currentEditStallId = null;
+                currentEditStallData = null;
+            }, 300);
+        }
+        
+        document.getElementById('close-edit-modal-btn').onclick = closeEditModal;
+        document.getElementById('cancel-edit-btn').onclick = closeEditModal;
+        
+        function normalizeName(name) {
+            return name.replace(/^(นาย|นาง|นางสาว|น\.ส\.|ด\.ช\.|ด\.ญ\.)\s*/, '').replace(/\s+/g, '').toLowerCase();
+        }
+
+        document.getElementById('verify-btn').onclick = () => {
+            const inputName = document.getElementById('verify-name').value.trim();
+            const inputPhone = document.getElementById('verify-phone').value.trim();
+            
+            if (!inputName || !inputPhone) {
+                alert('กรุณากรอกชื่อและเบอร์โทรเดิมเพื่อตรวจสอบ'); return;
+            }
+            
+            const normInputName = normalizeName(inputName);
+            const normActualName = normalizeName(currentEditStallData.contactName);
+            
+            const isNameMatch = normActualName.includes(normInputName) || normInputName.includes(normActualName);
+            const isPhoneMatch = inputPhone.replace(/\D/g, '') === currentEditStallData.phone.replace(/\D/g, '');
+            
+            if (isNameMatch && isPhoneMatch) {
+                editVerifyStep.classList.add('hidden');
+                editFormStep.classList.remove('hidden');
+                
+                document.getElementById('edit-shop').value = currentEditStallData.shopName;
+                document.getElementById('edit-product').value = currentEditStallData.product;
+                document.getElementById('edit-new-name').value = currentEditStallData.contactName;
+                document.getElementById('edit-new-phone').value = currentEditStallData.phone;
+            } else {
+                alert('ข้อมูลไม่ตรงกัน\n\nโปรดตรวจสอบชื่อ และเบอร์โทรของคนที่จองล็อคนี้อีกครั้ง');
+            }
+        };
+
+        document.getElementById('save-edit-btn').onclick = async () => {
+            const shop = document.getElementById('edit-shop').value.trim();
+            const product = document.getElementById('edit-product').value.trim();
+            const name = document.getElementById('edit-new-name').value.trim();
+            const phone = document.getElementById('edit-new-phone').value.trim();
+            const phoneDigits = phone.replace(/\D/g, '');
+            
+            if (!shop || !product || !name || !phone) {
+                alert('กรุณากรอกข้อมูลให้ครบทุกช่อง'); return;
+            }
+            if (phoneDigits.length !== 10) {
+                alert('กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก'); return;
+            }
+            
+            try {
+                await updateDoc(doc(stallsRef, currentEditStallId), {
+                    shopName: shop,
+                    product: product,
+                    contactName: name,
+                    phone: phone,
+                    lastEditAt: serverTimestamp()
+                });
+                closeEditModal();
+                showModal('บันทึกสำเร็จ', `แก้ไขข้อมูลล็อค ${currentEditStallId} เรียบร้อยแล้ว`, 'success');
+            } catch (err) {
+                alert('ขัดข้อง: ไม่สามารถบันทึกข้อมูลได้');
+            }
+        };
+
+        document.getElementById('delete-stall-btn').onclick = async () => {
+            if (confirm(`ยืนยันการ "ยกเลิกจอง"\nคุณแน่ใจหรือไม่ว่าต้องการคืนพื้นที่ล็อค ${currentEditStallId}? (ข้อมูลร้านจะถูกลบทิ้งทันที)`)) {
+                try {
+                    await deleteDoc(doc(stallsRef, currentEditStallId));
+                    closeEditModal();
+                    showModal('คืนพื้นที่สำเร็จ', `ล็อค ${currentEditStallId} กลับมาว่างอีกครั้ง`, 'success');
+                } catch (err) {
+                    alert('เกิดข้อผิดพลาดในการยกเลิกจอง');
+                }
+            }
+        };
+
+
+        // --- MAP ZOOM LOGIC ---
+        const mapViewport = document.getElementById('mapViewport');
+        const mapScaleWrapper = document.getElementById('mapScaleWrapper');
+        const mapInner = document.getElementById('mapInner');
+        const zoomBox = document.getElementById('zoom-box');
+        const zoomOutBtn = document.getElementById('zoom-out-btn');
+        
+        let isZoomed = false;
+        let baseScale = 1;
+
+        function updateBaseScale() {
+            const vw = mapViewport.clientWidth;
+            const vh = mapViewport.clientHeight;
+            baseScale = Math.min(vw / 1550, vh / 750) * 0.95; 
+            
+            if (!isZoomed) {
+                mapInner.style.transform = `scale(${baseScale})`;
+            }
+        }
+
+        window.addEventListener('resize', updateBaseScale);
+        updateBaseScale(); 
+
+        mapViewport.addEventListener('mousemove', (e) => {
+            if (isZoomed) return;
+            const rect = mapViewport.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const boxW = 250;
+            const boxH = 180;
+            
+            let left = x - (boxW / 2);
+            let top = y - (boxH / 2);
+
+            left = Math.max(0, Math.min(left, rect.width - boxW));
+            top = Math.max(0, Math.min(top, rect.height - boxH));
+
+            zoomBox.style.left = `${left}px`;
+            zoomBox.style.top = `${top}px`;
+            zoomBox.classList.remove('hidden');
+        });
+
+        mapViewport.addEventListener('mouseleave', () => { zoomBox.classList.add('hidden'); });
+
+        mapViewport.addEventListener('click', (e) => {
+            if (e.target.closest('button')) return; 
+
+            if (!isZoomed) {
+                const rect = mapViewport.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const originX = (x / rect.width) * 100;
+                const originY = (y / rect.height) * 100;
+
+                mapScaleWrapper.style.transformOrigin = `${originX}% ${originY}%`;
+                mapScaleWrapper.style.transform = `scale(2.5)`; 
+
+                isZoomed = true;
+                zoomBox.classList.add('hidden');
+                zoomOutBtn.classList.remove('hidden');
+                mapViewport.classList.remove('cursor-crosshair');
+                
+                rowBContainer.classList.remove('pointer-events-none');
+                rowCContainer.classList.remove('pointer-events-none');
+            }
+        });
+
+        zoomOutBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            isZoomed = false;
+            mapScaleWrapper.style.transform = `scale(1)`;
+            zoomOutBtn.classList.add('hidden');
+            mapViewport.classList.add('cursor-crosshair');
+            
+            rowBContainer.classList.add('pointer-events-none');
+            rowCContainer.classList.add('pointer-events-none');
+        });
+
+
+        // --- ADMIN AUTH & MANAGEMENT MODE ---
+        const adminLoginModal = document.getElementById('admin-login-modal');
+        const adminChangePwdModal = document.getElementById('admin-change-pwd-modal');
+        const adminPwdInput = document.getElementById('admin-pwd-input');
+        const adminNewPwdInput = document.getElementById('admin-new-pwd-input');
+
+        function checkAdminMode() {
+            if (window.location.href.includes('admin') || window.location.hash.includes('admin')) {
+                adminLoginModal.classList.remove('hidden');
+                adminLoginModal.classList.add('flex');
+            }
+        }
+
+        // ขอรหัสผ่านแอดมินปัจจุบันจาก Firebase
+        async function getAdminPassword() {
+            try {
+                const docSnap = await getDoc(adminSettingsRef);
+                if (docSnap.exists() && docSnap.data().password) {
+                    return docSnap.data().password;
+                }
+            } catch (e) { console.error("Error fetching admin config", e); }
+            return 'Admin123'; // รหัสเริ่มต้นหากยังไม่เคยตั้ง
+        }
+
+        document.getElementById('admin-login-btn').onclick = async () => {
+            const inputPass = adminPwdInput.value;
+            if(!inputPass) return;
+
+            document.getElementById('admin-login-btn').innerText = 'กำลังตรวจสอบ...';
+            const correctPass = await getAdminPassword();
+            document.getElementById('admin-login-btn').innerText = 'เข้าสู่ระบบ';
+
+            if (inputPass === correctPass) {
+                // ล็อคอินสำเร็จ
+                adminLoginModal.classList.add('hidden');
+                adminLoginModal.classList.remove('flex');
+                isAdminAuthenticated = true;
+                renderMap(); // อัปเดตผังใหม่เพื่อให้แอดมินกดดูข้อมูลได้
+
+                if (correctPass === 'Admin123') {
+                    // บังคับเปลี่ยนรหัส
+                    adminChangePwdModal.classList.remove('hidden');
+                    adminChangePwdModal.classList.add('flex');
+                } else {
+                    document.getElementById('admin-panel').classList.remove('hidden');
+                }
+            } else {
+                alert('รหัสผ่านไม่ถูกต้อง');
+            }
+        };
+
+        document.getElementById('admin-save-pwd-btn').onclick = async () => {
+            const newPass = adminNewPwdInput.value;
+            if (newPass.length < 6) {
+                alert('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร'); return;
+            }
+            try {
+                await setDoc(adminSettingsRef, { password: newPass }, { merge: true });
+                adminChangePwdModal.classList.add('hidden');
+                adminChangePwdModal.classList.remove('flex');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                showModal('สำเร็จ', 'เปลี่ยนรหัสผ่านแอดมินเรียบร้อยแล้ว', 'success');
+            } catch (e) {
+                alert('ไม่สามารถบันทึกรหัสผ่านได้');
+            }
+        };
+
+        // แอดมิน: จัดการลบรายแผนก
+        document.getElementById('admin-delete-dept-btn').onclick = async () => {
+            const dept = document.getElementById('admin-dept-manage').value;
+            if (!dept) {
+                alert('กรุณาเลือกแผนกที่ต้องการลบข้อมูล'); return;
+            }
+            
+            const stallsToDelete = Object.keys(globalStallsData).filter(
+                k => globalStallsData[k].status === 'booked' && globalStallsData[k].department === dept
+            );
+
+            if (stallsToDelete.length === 0) {
+                alert(`ไม่มีข้อมูลการจองของ "${dept}" ในระบบ`); return;
+            }
+
+            if (confirm(`ยืนยันการลบข้อมูล\nคุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลการจองของ "${dept}" ทั้งหมด ${stallsToDelete.length} ล็อค?`)) {
+                try {
+                    const deletePromises = stallsToDelete.map(id => deleteDoc(doc(stallsRef, id)));
+                    await Promise.all(deletePromises);
+                    showModal('สำเร็จ', `ลบข้อมูลแผนก ${dept} เรียบร้อยแล้ว จำนวน ${stallsToDelete.length} ล็อค`, 'success');
+                } catch(e) {
+                    showModal('ขัดข้อง', 'เกิดข้อผิดพลาดในการลบข้อมูล', 'error');
+                }
+            }
+        };
+
+        // แอดมิน: โหลด Excel
+        document.getElementById('export-excel-btn').onclick = () => {
+            const bookedStalls = Object.keys(globalStallsData)
+                .filter(key => globalStallsData[key].status === 'booked')
+                .map(key => ({ id: key, ...globalStallsData[key] }));
+
+            if (bookedStalls.length === 0) {
+                showModal('ไม่มีข้อมูล', 'ยังไม่มีการจองในระบบ', 'warning'); return;
+            }
+
+            let csv = "\uFEFFรหัสล็อค,แผนก,ชื่อร้าน,สินค้าที่ขาย,ชื่อผู้รับผิดชอบ,เบอร์โทร\n";
+            bookedStalls.forEach(b => {
+                csv += `${b.id},"${b.department}","${b.shopName}","${b.product}","${b.contactName}","${b.phone}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "market_bookings.csv";
+            link.click();
+        };
+
+        // แอดมิน: ล้างข้อมูลทั้งหมด
+        document.getElementById('clear-data-btn').onclick = async () => {
+            const pass = prompt('พิมพ์ "DELETE" เพื่อยืนยันการล้างข้อมูลทั้งหมด');
+            if (pass === 'DELETE') {
+                try {
+                    const snapshot = await getDocs(stallsRef);
+                    const deletePromises = [];
+                    snapshot.forEach(docSnap => {
+                        deletePromises.push(deleteDoc(doc(stallsRef, docSnap.id)));
+                    });
+                    await Promise.all(deletePromises);
+                    showModal('ล้างข้อมูลสำเร็จ', 'ลบข้อมูลการจองทั้งหมดแล้ว', 'success');
+                } catch(e) {
+                    showModal('ล้มเหลว', 'เกิดข้อผิดพลาดในการลบข้อมูล', 'error');
+                }
+            }
+        };
+
+        initApp();
+
+    </script>
+</body>
+</html>
