@@ -111,29 +111,29 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             </div>
             
             <!-- Legend -->
-            <div class="mt-4 md:mt-0 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-medium border p-3 rounded-lg bg-slate-50">
+            <div class="mt-4 md:mt-0 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-xs font-medium border p-4 rounded-lg bg-slate-50">
                 <div class="flex items-center gap-2">
-                    <div class="w-4 h-4 rounded-sm bg-yellow-300 border border-yellow-400"></div>
+                    <div class="w-4 h-4 rounded-sm bg-yellow-300 border border-yellow-400 flex-shrink-0"></div>
                     <span>B (ว่าง)</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div class="w-4 h-4 rounded-sm bg-lime-400 border border-lime-500"></div>
+                    <div class="w-4 h-4 rounded-sm bg-lime-400 border border-lime-500 flex-shrink-0"></div>
                     <span>C (ว่าง)</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div class="w-4 h-4 rounded-sm bg-blue-500 border border-blue-600"></div>
+                    <div class="w-4 h-4 rounded-sm bg-blue-500 border border-blue-600 flex-shrink-0"></div>
                     <span>คุณกำลังเลือก</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div class="w-4 h-4 rounded-sm bg-orange-400 border border-orange-500"></div>
+                    <div class="w-4 h-4 rounded-sm bg-orange-400 border border-orange-500 flex-shrink-0"></div>
                     <span>คนอื่นเลือกอยู่</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div class="w-4 h-4 rounded-sm bg-violet-400 border border-violet-600"></div>
+                    <div class="w-4 h-4 rounded-sm bg-violet-400 border border-violet-600 flex-shrink-0"></div>
                     <span>จองแล้วบางวัน (จองวันที่เหลือได้)</span>
                 </div>
-                <div class="flex items-center gap-2 sm:col-span-4 justify-center mt-1">
-                    <div class="w-4 h-4 rounded-sm bg-slate-300 border border-slate-400"></div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded-sm bg-slate-300 border border-slate-400 flex-shrink-0"></div>
                     <span>จองสำเร็จแล้ว</span>
                 </div>
             </div>
@@ -232,32 +232,22 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             <div class="bg-slate-700/50 p-4 rounded-xl border border-slate-600 flex flex-col sm:flex-row gap-3 items-end">
                 <div class="flex-1 w-full">
                     <label class="block text-[11px] font-medium text-slate-300 mb-1.5">จัดการรายแผนก (ยกเลิกจองเหมาแผนก)</label>
-                    <select id="admin-dept-manage" class="w-full border border-slate-500 bg-slate-700 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white">
-                        <option value="">-- เลือกแผนกที่ต้องการลบข้อมูล --</option>
-                        <option value="แผนกช่างยนต์">แผนกช่างยนต์</option>
-                        <option value="แผนกช่างกลโรงงาน">แผนกช่างกลโรงงาน</option>
-                        <option value="แผนกวิชาเขียนแบบเครื่องกล">แผนกวิชาเขียนแบบเครื่องกล</option>
-                        <option value="แผนกวิชาเทคนิคการผลิต">แผนกวิชาเทคนิคการผลิต</option>
-                        <option value="แผนกช่างเชื่อมโลหะ">แผนกช่างเชื่อมโลหะ</option>
-                        <option value="แผนกวิชาไฟฟ้ากำลัง">แผนกวิชาไฟฟ้ากำลัง</option>
-                        <option value="แผนกวิชาช่างอิเล็กทรอนิกส์">แผนกวิชาช่างอิเล็กทรอนิกส์</option>
-                        <option value="แผนกวิชาช่างก่อสร้าง">แผนกวิชาช่างก่อสร้าง</option>
-                        <option value="แผนกวิชาเทคนิคสถาปัตย์">แผนกวิชาเทคนิคสถาปัตย์</option>
-                        <option value="แผนกวิชาเทคนิคพื้นฐาน">แผนกวิชาเทคนิคพื้นฐาน</option>
-                        <option value="แผนกวิชาอาหารและโภชนาการ">แผนกวิชาอาหารและโภชนาการ</option>
-                        <option value="แผนกวิชาคหกรรมศาสตร์">แผนกวิชาคหกรรมศาสตร์</option>
-                        <option value="แผนกวิชาผ้าและเครื่องแต่งกาย">แผนกวิชาผ้าและเครื่องแต่งกาย</option>
-                        <option value="แผนกวิชาวิจิตรศิลป์">แผนกวิชาวิจิตรศิลป์</option>
-                        <option value="แผนกวิชาออกแบบ">แผนกวิชาออกแบบ</option>
-                        <option value="แผนกวิชาคอมพิวเตอร์กราฟฟิก">แผนกวิชาคอมพิวเตอร์กราฟฟิก</option>
-                        <option value="แผนกวิชาศิลปกรรมเซรามิก">แผนกวิชาศิลปกรรมเซรามิก</option>
-                        <option value="แผนกวิชาการบัญชี">แผนกวิชาการบัญชี</option>
-                        <option value="แผนกวิชาการจัดการสำนักงาน">แผนกวิชาการจัดการสำนักงาน</option>
-                        <option value="แผนกวิชาการตลาด">แผนกวิชาการตลาด</option>
-                        <option value="แผนกวิชาคอมพิวเตอร์ธุรกิจ">แผนกวิชาคอมพิวเตอร์ธุรกิจ</option>
-                        <option value="แผนกวิชาการจัดการโลจิสติกส์">แผนกวิชาการจัดการโลจิสติกส์</option>
-                        <option value="แผนกวิชาการโรงแรม">แผนกวิชาการโรงแรม</option>
-                    </select>
+                    <div class="relative" id="admin-dept-manage-wrap">
+                        <input type="hidden" id="admin-dept-manage" value="">
+                        <button type="button" id="admin-dept-manage-search" class="w-full border border-slate-500 bg-slate-700 rounded-lg p-2 text-sm text-left flex items-center justify-between gap-2 text-white hover:border-slate-400 focus:ring-2 focus:ring-blue-500 outline-none transition-colors">
+                            <span id="admin-dept-manage-search-label" class="text-slate-400 truncate">-- เลือกแผนกที่ต้องการลบข้อมูล --</span>
+                            <svg id="admin-dept-manage-chevron" class="w-4 h-4 text-slate-400 flex-shrink-0 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        </button>
+                        <div id="admin-dept-manage-dropdown" class="hidden absolute z-30 mt-1.5 w-full bg-slate-800 border border-slate-600 rounded-xl shadow-lg overflow-hidden">
+                            <div class="p-2 border-b border-slate-600">
+                                <div class="relative">
+                                    <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
+                                    <input type="text" id="admin-dept-manage-filter" placeholder="พิมพ์ค้นหาแผนก..." autocomplete="off" class="w-full border border-slate-600 bg-slate-700 text-white placeholder-slate-400 rounded-lg pl-8 pr-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                                </div>
+                            </div>
+                            <div id="admin-dept-manage-options" class="max-h-56 overflow-y-auto py-1"></div>
+                        </div>
+                    </div>
                 </div>
                 <button id="admin-delete-dept-btn" class="bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white border border-red-500/50 px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full sm:w-auto h-10">
                     ลบข้อมูลแผนกนี้
@@ -392,32 +382,22 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                     <div id="booking-form-container" class="border-t border-slate-100 pt-3 flex flex-col gap-3">
                         <div>
                             <label class="block text-[11px] font-medium text-slate-600 mb-1">แผนก <span class="text-red-500">*</span></label>
-                            <select id="input-department" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                                <option value="">-- เลือกแผนก --</option>
-                                <option value="แผนกช่างยนต์">แผนกช่างยนต์</option>
-                                <option value="แผนกช่างกลโรงงาน">แผนกช่างกลโรงงาน</option>
-                                <option value="แผนกวิชาเขียนแบบเครื่องกล">แผนกวิชาเขียนแบบเครื่องกล</option>
-                                <option value="แผนกวิชาเทคนิคการผลิต">แผนกวิชาเทคนิคการผลิต</option>
-                                <option value="แผนกช่างเชื่อมโลหะ">แผนกช่างเชื่อมโลหะ</option>
-                                <option value="แผนกวิชาไฟฟ้ากำลัง">แผนกวิชาไฟฟ้ากำลัง</option>
-                                <option value="แผนกวิชาช่างอิเล็กทรอนิกส์">แผนกวิชาช่างอิเล็กทรอนิกส์</option>
-                                <option value="แผนกวิชาช่างก่อสร้าง">แผนกวิชาช่างก่อสร้าง</option>
-                                <option value="แผนกวิชาเทคนิคสถาปัตย์">แผนกวิชาเทคนิคสถาปัตย์</option>
-                                <option value="แผนกวิชาเทคนิคพื้นฐาน">แผนกวิชาเทคนิคพื้นฐาน</option>
-                                <option value="แผนกวิชาอาหารและโภชนาการ">แผนกวิชาอาหารและโภชนาการ</option>
-                                <option value="แผนกวิชาคหกรรมศาสตร์">แผนกวิชาคหกรรมศาสตร์</option>
-                                <option value="แผนกวิชาผ้าและเครื่องแต่งกาย">แผนกวิชาผ้าและเครื่องแต่งกาย</option>
-                                <option value="แผนกวิชาวิจิตรศิลป์">แผนกวิชาวิจิตรศิลป์</option>
-                                <option value="แผนกวิชาออกแบบ">แผนกวิชาออกแบบ</option>
-                                <option value="แผนกวิชาคอมพิวเตอร์กราฟฟิก">แผนกวิชาคอมพิวเตอร์กราฟฟิก</option>
-                                <option value="แผนกวิชาศิลปกรรมเซรามิก">แผนกวิชาศิลปกรรมเซรามิก</option>
-                                <option value="แผนกวิชาการบัญชี">แผนกวิชาการบัญชี</option>
-                                <option value="แผนกวิชาการจัดการสำนักงาน">แผนกวิชาการจัดการสำนักงาน</option>
-                                <option value="แผนกวิชาการตลาด">แผนกวิชาการตลาด</option>
-                                <option value="แผนกวิชาคอมพิวเตอร์ธุรกิจ">แผนกวิชาคอมพิวเตอร์ธุรกิจ</option>
-                                <option value="แผนกวิชาการจัดการโลจิสติกส์">แผนกวิชาการจัดการโลจิสติกส์</option>
-                                <option value="แผนกวิชาการโรงแรม">แผนกวิชาการโรงแรม</option>
-                            </select>
+                            <div class="relative" id="input-department-wrap">
+                                <input type="hidden" id="input-department" value="">
+                                <button type="button" id="input-department-search" class="w-full border border-slate-300 rounded-lg p-2 text-sm text-left flex items-center justify-between gap-2 bg-white hover:border-slate-400 focus:ring-2 focus:ring-blue-500 outline-none transition-colors">
+                                    <span id="input-department-search-label" class="text-slate-400 truncate">-- เลือกแผนก --</span>
+                                    <svg id="input-department-chevron" class="w-4 h-4 text-slate-400 flex-shrink-0 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                <div id="input-department-dropdown" class="hidden absolute z-30 mt-1.5 w-full bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+                                    <div class="p-2 border-b border-slate-100">
+                                        <div class="relative">
+                                            <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
+                                            <input type="text" id="input-department-filter" placeholder="พิมพ์ค้นหาแผนก..." autocomplete="off" class="w-full border border-slate-200 rounded-lg pl-8 pr-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                                        </div>
+                                    </div>
+                                    <div id="input-department-options" class="max-h-56 overflow-y-auto py-1"></div>
+                                </div>
+                            </div>
                             <div id="dept-info-box" class="hidden mt-2 text-[11px] leading-relaxed bg-slate-50 border border-slate-200 rounded-lg p-2"></div>
                         </div>
                         <div>
@@ -943,6 +923,102 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         const announcementRef = doc(db, 'artifacts', artifactAppId, 'public', 'announcement');
         const eventDatesRef = collection(db, 'artifacts', artifactAppId, 'public', 'data', 'eventDates');
 
+        // --- รายชื่อแผนกทั้งหมด (ใช้ร่วมกันในดรอปดาวค้นหาแผนก) ---
+        const DEPARTMENT_LIST = [
+            'แผนกช่างยนต์', 'แผนกช่างกลโรงงาน', 'แผนกวิชาเขียนแบบเครื่องกล', 'แผนกวิชาเทคนิคการผลิต',
+            'แผนกช่างเชื่อมโลหะ', 'แผนกวิชาไฟฟ้ากำลัง', 'แผนกวิชาช่างอิเล็กทรอนิกส์', 'แผนกวิชาช่างก่อสร้าง',
+            'แผนกวิชาเทคนิคสถาปัตย์', 'แผนกวิชาเทคนิคพื้นฐาน', 'แผนกวิชาอาหารและโภชนาการ', 'แผนกวิชาคหกรรมศาสตร์',
+            'แผนกวิชาผ้าและเครื่องแต่งกาย', 'แผนกวิชาวิจิตรศิลป์', 'แผนกวิชาการออกแบบ', 'แผนกวิชาคอมพิวเตอร์กราฟฟิก',
+            'แผนกวิชาศิลปกรรมเซรามิก', 'แผนกวิชาการบัญชี', 'แผนกวิชาการจัดการสำนักงาน', 'แผนกวิชาการตลาด',
+            'แผนกวิชาคอมพิวเตอร์ธุรกิจ', 'แผนกวิชาการจัดการโลจิสติกส์', 'แผนกวิชาการโรงแรม'
+        ];
+
+        // --- ดรอปดาวค้นหาได้ (Searchable Combobox) ---
+        // สร้างดรอปดาวที่พิมพ์ค้นหาได้ พร้อมจัดอันดับผลลัพธ์ที่ใกล้เคียงที่สุดไว้บนสุด
+        // ใช้ input[type=hidden] เป็นตัวเก็บค่าจริง (ยังคง .value / dispatchEvent('change') ให้โค้ดเดิมทำงานได้ปกติ)
+        function initSearchableDropdown({ wrapId, hiddenId, searchBtnId, labelId, chevronId, dropdownId, filterId, optionsId, options, placeholder }) {
+            const wrap = document.getElementById(wrapId);
+            const hidden = document.getElementById(hiddenId);
+            const searchBtn = document.getElementById(searchBtnId);
+            const labelEl = document.getElementById(labelId);
+            const chevron = document.getElementById(chevronId);
+            const dropdown = document.getElementById(dropdownId);
+            const filterInput = document.getElementById(filterId);
+            const optionsBox = document.getElementById(optionsId);
+
+            function scoreMatch(text, q) {
+                const t = text.toLowerCase();
+                const idx = t.indexOf(q);
+                if (idx === -1) return -1;
+                if (idx === 0) return 0; // ขึ้นต้นด้วยคำค้นหา -> ดีที่สุด
+                return 1000 + idx; // เจอในส่วนอื่น -> เรียงตามตำแหน่งที่เจอ
+            }
+
+            function renderOptions(query) {
+                const q = (query || '').trim().toLowerCase();
+                let list = options.map(opt => ({ opt, score: q ? scoreMatch(opt, q) : 0 }));
+                if (q) list = list.filter(x => x.score !== -1);
+                list.sort((a, b) => a.score - b.score || a.opt.localeCompare(b.opt, 'th'));
+
+                optionsBox.innerHTML = '';
+                if (list.length === 0) {
+                    optionsBox.innerHTML = '<div class="px-3 py-4 text-center text-xs text-slate-400 italic">ไม่พบแผนกที่ค้นหา</div>';
+                    return;
+                }
+                list.forEach(({ opt }) => {
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    const isSelected = hidden.value === opt;
+                    item.className = `w-full text-left px-3 py-2 text-sm transition-colors ${isSelected ? 'bg-blue-50 text-blue-700 font-medium' : 'hover:bg-slate-100 text-inherit'}`;
+                    item.innerText = opt;
+                    item.onclick = () => {
+                        hidden.value = opt;
+                        labelEl.innerText = opt;
+                        labelEl.classList.remove('text-slate-400');
+                        hidden.dispatchEvent(new Event('change'));
+                        closeDropdown();
+                    };
+                    optionsBox.appendChild(item);
+                });
+            }
+
+            function openDropdown() {
+                dropdown.classList.remove('hidden');
+                chevron.classList.add('rotate-180');
+                filterInput.value = '';
+                renderOptions('');
+                setTimeout(() => filterInput.focus(), 10);
+            }
+            function closeDropdown() {
+                dropdown.classList.add('hidden');
+                chevron.classList.remove('rotate-180');
+            }
+
+            searchBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (dropdown.classList.contains('hidden')) openDropdown(); else closeDropdown();
+            });
+            filterInput.addEventListener('input', () => renderOptions(filterInput.value));
+            filterInput.addEventListener('click', (e) => e.stopPropagation());
+            document.addEventListener('click', (e) => {
+                if (!wrap.contains(e.target)) closeDropdown();
+            });
+            filterInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeDropdown();
+            });
+
+            // ฟังก์ชันสำหรับให้โค้ดภายนอกรีเซ็ต/ตั้งค่าดรอปดาวนี้ (ซิงก์ label ให้ตรงกับ hidden input)
+            hidden._syncLabel = () => {
+                if (hidden.value) {
+                    labelEl.innerText = hidden.value;
+                    labelEl.classList.remove('text-slate-400');
+                } else {
+                    labelEl.innerText = placeholder;
+                    labelEl.classList.add('text-slate-400');
+                }
+            };
+        }
+
         // --- ระบบวันที่จอง (เลือกได้หลายวันพร้อมกัน) ---
         let selectedDates = [];      // อาร์เรย์วันที่ (YYYY-MM-DD) ที่กำลังเลือกอยู่ เช่น ['2026-08-15','2026-08-16']
         let availableDates = [];     // รายการวันที่ทั้งหมด [{id, date, label}]
@@ -981,8 +1057,39 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 });
 
                 if (bookedDates.length > 0 && bookedDates.length === selectedDates.length) {
-                    // จองแล้วครบทุกวันที่เลือกไว้
-                    globalStallsData[id] = bookedData;
+                    // จองแล้วครบทุกวันที่เลือกไว้ -> ตรวจสอบว่าเป็นแผนกเดียวกันทุกวันหรือไม่
+                    const deptMap = {};
+                    bookedDates.forEach(date => {
+                        const full = rawStallsData[`${date}__${id}`];
+                        const deptKey = full.department || '-';
+                        if (!deptMap[deptKey]) deptMap[deptKey] = { department: deptKey, dates: [], data: full };
+                        deptMap[deptKey].dates.push(date);
+                    });
+                    const deptEntries = Object.values(deptMap);
+                    if (deptEntries.length > 1) {
+                        // มีมากกว่า 1 แผนกจองล็อกนี้ในช่วงวันที่เลือก (คนละวันคนละแผนก)
+                        globalStallsData[id] = {
+                            status: 'booked',
+                            multiDept: true,
+                            deptEntries: deptEntries.map(e => ({
+                                department: e.department,
+                                dates: e.dates,
+                                shopName: e.data.shopName,
+                                product: e.data.product,
+                                contactName: e.data.contactName,
+                                phone: e.data.phone,
+                                timestamp: e.data.timestamp
+                            })),
+                            department: deptEntries[0].department,
+                            shopName: deptEntries[0].data.shopName,
+                            product: deptEntries[0].data.product,
+                            contactName: deptEntries[0].data.contactName,
+                            phone: deptEntries[0].data.phone,
+                            timestamp: deptEntries[0].data.timestamp
+                        };
+                    } else {
+                        globalStallsData[id] = bookedData;
+                    }
                 } else if (bookedDates.length > 0) {
                     // จองแล้วแค่บางวัน -> ยังจองวันที่เหลือ (freeDates) ได้
                     const freeDates = selectedDates.filter(d => !bookedDates.includes(d));
@@ -1265,7 +1372,14 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                     btn.innerHTML = `<span class="z-10">${id}</span>
                                      <div class="absolute inset-0 pointer-events-none opacity-50" style="background: linear-gradient(45deg, transparent 48%, #64748b 49%, #64748b 51%, transparent 52%), linear-gradient(-45deg, transparent 48%, #64748b 49%, #64748b 51%, transparent 52%);"></div>`;
                     
-                    if(isAdminAuthenticated) {
+                    if (stallData.multiDept) {
+                        btn.title = `มี ${stallData.deptEntries.length} แผนกจองล็อกนี้ในช่วงวันที่เลือก\nกดเพื่อดูรายละเอียด`;
+                        btn.onclick = (e) => {
+                            if (!isZoomed) return;
+                            e.stopPropagation();
+                            openMultiDeptModal(id, stallData, isAdminAuthenticated);
+                        };
+                    } else if(isAdminAuthenticated) {
                         btn.title = `แผนก: ${stallData.department}\nร้าน: ${stallData.shopName}\nผู้ติดต่อ: ${stallData.contactName} (${stallData.phone})`;
                         btn.onclick = (e) => {
                             if (!isZoomed) return;
@@ -1299,16 +1413,15 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                     }
                 } else if (status === 'partial') {
                     // จองแล้วบางวัน (ไม่ใช่ทุกวันที่เลือกไว้) -> สีต่างจาก booked ปกติ ยังจองวันที่เหลือได้
-                    btn.classList.remove('h-[30px]');
-                    btn.classList.add('bg-violet-400', 'text-violet-950', 'border-violet-600', 'h-[38px]', 'overflow-hidden', 'px-0.5');
+                    btn.classList.add('bg-violet-400', 'text-violet-950', 'border-violet-600', 'overflow-hidden', 'px-0.5');
                     const bookedLabel = stallData.bookedDates.map(formatDateLabel).join(', ');
                     const freeLabel = stallData.freeDates.map(formatDateLabel).join(', ');
                     btn.title = `แผนก: ${stallData.department}\nจองแล้ววันที่: ${bookedLabel}\nยังว่างวันที่: ${freeLabel}`;
-                    const partialLabel = `<span class="z-10 leading-tight">${id}</span><span class="text-[7px] leading-none font-normal opacity-90 z-10 whitespace-nowrap" style="transform: scale(0.68); transform-origin: center;">จองแล้วบางวัน</span>`;
+                    const partialLabel = `<span class="z-10 leading-none text-[10px]">${id}</span><span class="text-[6px] leading-none font-normal opacity-90 z-10 whitespace-nowrap" style="transform: scale(0.6); transform-origin: center;">จองแล้วบางวัน</span>`;
 
                     if (stallData.lockedFreeByOther) {
-                        btn.classList.add('cursor-not-allowed', 'opacity-90');
-                        btn.innerHTML = `<span class="opacity-60 leading-tight">${id}</span><span class="text-[7px] leading-none font-normal opacity-70 whitespace-nowrap" style="transform: scale(0.68); transform-origin: center;">จองแล้วบางวัน</span><svg class="w-3 h-3 absolute top-0.5 right-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>`;
+                        btn.classList.add('cursor-not-allowed', 'opacity-90', 'ring-2', 'ring-inset', 'ring-orange-400');
+                        btn.innerHTML = `<span class="opacity-60 leading-none text-[10px]">${id}</span><span class="text-[6px] leading-none font-normal opacity-70 whitespace-nowrap" style="transform: scale(0.6); transform-origin: center;">จองแล้วบางวัน</span><svg class="w-3 h-3 absolute top-0.5 right-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>`;
                         btn.onclick = (e) => {
                             if (!isZoomed) return;
                             e.stopPropagation();
@@ -1352,7 +1465,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 const caption = document.createElement('div');
                 caption.className = 'text-[6.5px] leading-[1.1] text-slate-500 text-center w-[46px] truncate pointer-events-none';
                 if (status === 'booked' && stallData) {
-                    caption.innerHTML = `${shortenDept(stallData.department)}`;
+                    caption.innerHTML = stallData.multiDept ? `(${stallData.deptEntries.length} แผนก)` : `${shortenDept(stallData.department)}`;
                 } else if (status === 'partial' && stallData) {
                     caption.innerHTML = `${shortenDept(stallData.department)} (บางวัน)`;
                 } else {
@@ -1371,10 +1484,12 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             const dept = document.getElementById('input-department').value;
             if (!dept) { box.classList.add('hidden'); box.innerHTML = ''; return; }
 
-            const deptStalls = Object.keys(globalStallsData).filter(k =>
-                (globalStallsData[k].status === 'booked' || globalStallsData[k].status === 'partial') &&
-                globalStallsData[k].department === dept
-            ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+            const deptStalls = Object.keys(globalStallsData).filter(k => {
+                const d = globalStallsData[k];
+                if (d.status !== 'booked' && d.status !== 'partial') return false;
+                if (d.multiDept) return d.deptEntries.some(e => e.department === dept);
+                return d.department === dept;
+            }).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
             box.classList.remove('hidden');
             if (deptStalls.length === 0) {
@@ -1388,8 +1503,11 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             listWrap.className = 'mt-2 flex flex-col gap-1.5';
 
             deptStalls.forEach(id => {
-                const data = globalStallsData[id];
-                const isPartial = data.status === 'partial';
+                const raw = globalStallsData[id];
+                const isPartial = raw.status === 'partial';
+                // ถ้าล็อกนี้มีหลายแผนกจองคนละวัน ให้ดึงข้อมูลเฉพาะของแผนกที่กำลังดูอยู่
+                const entry = raw.multiDept ? raw.deptEntries.find(e => e.department === dept) : null;
+                const data = entry || raw;
                 const card = document.createElement('div');
                 card.className = 'p-2 rounded-lg border border-slate-200 bg-white';
                 card.innerHTML = `
@@ -1406,7 +1524,13 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                     </div>
                 `;
                 if (!isPartial) {
-                    card.querySelector('.dept-edit-select-btn').onclick = () => openEditModal(id, data, false);
+                    card.querySelector('.dept-edit-select-btn').onclick = () => {
+                        if (entry) {
+                            openEditModal(id, { ...entry, _targetDates: entry.dates }, false);
+                        } else {
+                            openEditModal(id, data, false);
+                        }
+                    };
                 }
                 listWrap.appendChild(card);
             });
@@ -1414,6 +1538,33 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             box.appendChild(listWrap);
         }
         document.getElementById('input-department').addEventListener('change', updateDeptInfoBox);
+
+        // เริ่มต้นดรอปดาวค้นหาแผนก (พิมพ์ค้นหาได้ เรียงอันดับความใกล้เคียงไว้บนสุด)
+        initSearchableDropdown({
+            wrapId: 'input-department-wrap',
+            hiddenId: 'input-department',
+            searchBtnId: 'input-department-search',
+            labelId: 'input-department-search-label',
+            chevronId: 'input-department-chevron',
+            dropdownId: 'input-department-dropdown',
+            filterId: 'input-department-filter',
+            optionsId: 'input-department-options',
+            options: DEPARTMENT_LIST,
+            placeholder: '-- เลือกแผนก --'
+        });
+
+        initSearchableDropdown({
+            wrapId: 'admin-dept-manage-wrap',
+            hiddenId: 'admin-dept-manage',
+            searchBtnId: 'admin-dept-manage-search',
+            labelId: 'admin-dept-manage-search-label',
+            chevronId: 'admin-dept-manage-chevron',
+            dropdownId: 'admin-dept-manage-dropdown',
+            filterId: 'admin-dept-manage-filter',
+            optionsId: 'admin-dept-manage-options',
+            options: DEPARTMENT_LIST,
+            placeholder: '-- เลือกแผนกที่ต้องการลบข้อมูล --'
+        });
 
         // --- Logic: Click Stall ---
         async function toggleStall(id, stallData) {
@@ -1492,6 +1643,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         // ล้างค่าฟอร์มด้านข้างและคืนปุ่มเป็นโหมด "จอง" ปกติ
         function resetBookingFormInputs() {
             document.getElementById('input-department').value = '';
+            if (document.getElementById('input-department')._syncLabel) document.getElementById('input-department')._syncLabel();
             document.getElementById('input-shop').value = '';
             document.getElementById('input-product').value = '';
             document.getElementById('input-name').value = '';
@@ -1564,8 +1716,11 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             // นับล็อกที่แผนกนี้มีอยู่แล้ว (ทั้งจองครบทุกวัน และจองแล้วบางวัน) โดยไม่นับซ้ำกับล็อกที่กำลังจะจองเพิ่มรอบนี้
             const deptBookedCount = Object.keys(globalStallsData).filter(id => {
                 const d = globalStallsData[id];
-                return (d.status === 'booked' && d.department === dept) ||
-                       (d.status === 'partial' && d.department === dept && !myLockedIds.includes(id));
+                if (d.status === 'booked') {
+                    if (d.multiDept) return d.deptEntries.some(e => e.department === dept);
+                    return d.department === dept;
+                }
+                return d.status === 'partial' && d.department === dept && !myLockedIds.includes(id);
             }).length;
 
             // ล็อกที่กำลังจะจองรอบนี้ที่ยังไม่เคยถูกนับไปแล้ว (เช่น ล็อกใหม่ทั้งหมด หรือล็อกที่จองบางวันของแผนกอื่น)
@@ -1760,6 +1915,100 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         });
 
         // --- EDIT MODAL LOGIC (ระบบแก้ไขข้อมูล) ---
+        // --- ล็อกที่มีมากกว่า 1 แผนกจอง (คนละวันคนละแผนก) ---
+        function openMultiDeptModal(id, stallData, isAdmin) {
+            currentEditStallId = id;
+            currentEditStallData = null;
+
+            editModalTitle.innerText = `ข้อมูลล็อค ${id} (${stallData.deptEntries.length} แผนก)`;
+            document.getElementById('verify-name').value = '';
+            document.getElementById('verify-phone').value = '';
+            editVerifyStep.classList.add('hidden');
+            editFormStep.classList.add('hidden');
+
+            renderMultiDeptInfoBox(id, stallData, isAdmin);
+
+            editModal.classList.remove('hidden');
+            editModal.classList.add('flex');
+            setTimeout(() => { editModal.classList.remove('opacity-0'); }, 10);
+        }
+
+        function renderMultiDeptInfoBox(id, stallData, isAdmin) {
+            const box = document.getElementById('edit-info-box');
+            box.classList.add('relative', 'pb-11');
+            box.innerHTML = `
+                <div class="text-xs font-semibold text-slate-500 mb-2">ล็อกนี้ถูกจองโดย ${stallData.deptEntries.length} แผนก ในช่วงวันที่เลือกไว้</div>
+                <div class="space-y-2">
+                    ${stallData.deptEntries.map(e => `
+                        <div class="border border-slate-200 rounded-lg p-2 bg-white">
+                            <div class="font-bold text-slate-800 text-sm">${e.department}</div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">วันที่: ${e.dates.map(formatDateLabel).join(', ')}</div>
+                            <div class="text-[11px] text-slate-500">ร้าน: ${e.shopName || '-'} • ${e.product || '-'}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <button id="multi-dept-edit-btn" title="แก้ไขข้อมูล" class="absolute bottom-2 right-2 bg-slate-800 hover:bg-slate-900 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-md transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                </button>
+            `;
+            document.getElementById('multi-dept-edit-btn').onclick = () => showMultiDeptChooser(id, stallData, isAdmin);
+        }
+
+        function showMultiDeptChooser(id, stallData, isAdmin) {
+            const box = document.getElementById('edit-info-box');
+            box.innerHTML = `
+                <div class="text-xs font-semibold text-slate-600 mb-2">เลือกรายการที่ต้องการแก้ไข</div>
+                <div class="space-y-1.5" id="multi-dept-choice-list"></div>
+            `;
+            const listBox = document.getElementById('multi-dept-choice-list');
+            stallData.deptEntries.forEach(e => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'w-full text-left border border-slate-200 hover:border-blue-400 hover:bg-blue-50 rounded-lg p-2 text-xs transition-colors';
+                item.innerHTML = `<span class="font-bold text-slate-800">${e.department}</span><br><span class="text-slate-500">${e.dates.map(formatDateLabel).join(', ')} • ${e.shopName || '-'}</span>`;
+                item.onclick = () => selectDeptEntryForEdit(id, e, isAdmin);
+                listBox.appendChild(item);
+            });
+        }
+
+        function selectDeptEntryForEdit(id, entry, isAdmin) {
+            currentEditStallId = id;
+            currentEditStallData = {
+                department: entry.department,
+                shopName: entry.shopName,
+                product: entry.product,
+                contactName: entry.contactName,
+                phone: entry.phone,
+                timestamp: entry.timestamp,
+                _targetDates: entry.dates
+            };
+
+            const box = document.getElementById('edit-info-box');
+            box.classList.remove('relative', 'pb-11');
+            box.innerHTML = `
+                <div><span class="text-slate-400">แผนก:</span> <b>${entry.department || '-'}</b></div>
+                <div><span class="text-slate-400">ชื่อร้าน:</span> <b>${entry.shopName || '-'}</b></div>
+                <div><span class="text-slate-400">ขายอะไร:</span> <b>${entry.product || '-'}</b></div>
+                <div class="text-[11px] text-slate-400 pt-1 border-t border-slate-200 mt-1">จองเมื่อ: ${formatTimestamp(entry.timestamp)}</div>
+            `;
+            editModalTitle.innerText = `แก้ไขข้อมูลล็อค ${id}`;
+
+            if (isAdmin) {
+                editVerifyStep.classList.add('hidden');
+                editFormStep.classList.remove('hidden');
+                document.getElementById('edit-success-msg').innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg> สิทธิ์ผู้ดูแลระบบ: แก้ไขข้อมูลได้ทันที`;
+                document.getElementById('edit-shop').value = entry.shopName;
+                document.getElementById('edit-product').value = entry.product;
+                document.getElementById('edit-new-name').value = entry.contactName;
+                document.getElementById('edit-new-phone').value = entry.phone;
+            } else {
+                editVerifyStep.classList.remove('hidden');
+                editFormStep.classList.add('hidden');
+                document.getElementById('verify-name').value = '';
+                document.getElementById('verify-phone').value = '';
+            }
+        }
+
         function openEditModal(id, data, isAdmin = false) {
             currentEditStallId = id;
             currentEditStallData = data;
@@ -1767,6 +2016,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             editModalTitle.innerText = `แก้ไขข้อมูลล็อค ${id}`;
             document.getElementById('verify-name').value = '';
             document.getElementById('verify-phone').value = '';
+            document.getElementById('edit-info-box').classList.remove('relative', 'pb-11');
 
             document.getElementById('edit-info-box').innerHTML = `
                 <div><span class="text-slate-400">แผนก:</span> <b>${data.department || '-'}</b></div>
@@ -1855,7 +2105,8 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             }
             
             try {
-                await Promise.all(selectedDates.map(date =>
+                const targetDates = (currentEditStallData && currentEditStallData._targetDates) || selectedDates;
+                await Promise.all(targetDates.map(date =>
                     updateDoc(doc(stallsRef, `${date}__${currentEditStallId}`), {
                         shopName: shop,
                         product: product,
@@ -1874,7 +2125,8 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         document.getElementById('delete-stall-btn').onclick = async () => {
             if (confirm(`ยืนยันการ "ยกเลิกจอง"\nคุณแน่ใจหรือไม่ว่าต้องการคืนพื้นที่ล็อค ${currentEditStallId}? (ข้อมูลร้านจะถูกลบทิ้งทันที)`)) {
                 try {
-                    await Promise.all(selectedDates.map(date =>
+                    const targetDates = (currentEditStallData && currentEditStallData._targetDates) || selectedDates;
+                    await Promise.all(targetDates.map(date =>
                         deleteDoc(doc(stallsRef, `${date}__${currentEditStallId}`)).catch(() => {})
                     ));
                     closeEditModal();
@@ -2259,9 +2511,18 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 alert('กรุณาเลือกแผนกที่ต้องการลบข้อมูล'); return;
             }
             
-            const stallsToDelete = Object.keys(globalStallsData).filter(
-                k => (globalStallsData[k].status === 'booked' || globalStallsData[k].status === 'partial') && globalStallsData[k].department === dept
-            );
+            // รวมล็อกที่แผนกนี้จองอยู่ พร้อมวันที่ที่ต้องลบ (รองรับล็อกที่มีหลายแผนกจองคนละวัน)
+            const stallsToDelete = [];
+            Object.keys(globalStallsData).forEach(k => {
+                const d = globalStallsData[k];
+                if (d.status !== 'booked' && d.status !== 'partial') return;
+                if (d.multiDept) {
+                    const entry = d.deptEntries.find(e => e.department === dept);
+                    if (entry) stallsToDelete.push({ id: k, dates: entry.dates });
+                } else if (d.department === dept) {
+                    stallsToDelete.push({ id: k, dates: selectedDates });
+                }
+            });
 
             if (stallsToDelete.length === 0) {
                 alert(`ไม่มีข้อมูลการจองของ "${dept}" ในระบบ`); return;
@@ -2269,8 +2530,8 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
 
             if (confirm(`ยืนยันการลบข้อมูล\nคุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลการจองของ "${dept}" ทั้งหมด ${stallsToDelete.length} ล็อค?`)) {
                 try {
-                    const deletePromises = stallsToDelete.flatMap(id =>
-                        selectedDates.map(date => deleteDoc(doc(stallsRef, `${date}__${id}`)).catch(() => {}))
+                    const deletePromises = stallsToDelete.flatMap(s =>
+                        s.dates.map(date => deleteDoc(doc(stallsRef, `${date}__${s.id}`)).catch(() => {}))
                     );
                     await Promise.all(deletePromises);
                     showModal('สำเร็จ', `ลบข้อมูลแผนก ${dept} เรียบร้อยแล้ว จำนวน ${stallsToDelete.length} ล็อค`, 'success');
@@ -2282,9 +2543,16 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
 
         // แอดมิน: โหลด Excel
         document.getElementById('export-excel-btn').onclick = () => {
-            const bookedStalls = Object.keys(globalStallsData)
-                .filter(key => globalStallsData[key].status === 'booked' || globalStallsData[key].status === 'partial')
-                .map(key => ({ id: key, ...globalStallsData[key] }));
+            const bookedStalls = [];
+            Object.keys(globalStallsData).forEach(key => {
+                const d = globalStallsData[key];
+                if (d.status !== 'booked' && d.status !== 'partial') return;
+                if (d.multiDept) {
+                    d.deptEntries.forEach(e => bookedStalls.push({ id: key, ...e }));
+                } else {
+                    bookedStalls.push({ id: key, ...d });
+                }
+            });
 
             if (bookedStalls.length === 0) {
                 showModal('ไม่มีข้อมูล', 'ยังไม่มีการจองในระบบ', 'warning'); return;
