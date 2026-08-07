@@ -939,11 +939,11 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             instruction.classList.add('hidden');
 
             // ขั้นตอนที่ 1
-            statusText.innerText = 'กำลังสร้างรูปภาพ ครั้งที่ 1...';
+            statusText.innerText = 'กำลังสร้างรูปภาพ...';
             await new Promise(r => setTimeout(r, 1500));
 
             // ขั้นตอนที่ 2
-            statusText.innerText = 'กำลังสร้างรูปภาพ ครั้งที่ 2... (ปรับความชัด)';
+            statusText.innerText = 'กำลังสร้างรูปภาพ... (ปรับความชัด)';
             await new Promise(r => setTimeout(r, 1500));
 
             // ขั้นตอนสุดท้าย: สร้างจริง
@@ -958,6 +958,9 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
 
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, W, H);
+            
+            // วาดลายกราฟฟิกพื้นหลัง
+            drawBackgroundPattern(ctx, W, H);
 
             const grad = ctx.createLinearGradient(0, 0, W, 0);
             grad.addColorStop(0, '#e6127f');
@@ -1056,6 +1059,50 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             slipImg.classList.remove('hidden');
             instruction.classList.remove('hidden');
             instruction.classList.add('flex'); // ใช้ flex เพื่อจัดวางไอคอนกับข้อความ
+        }
+
+        // ฟังก์ชันวาดลายกราฟฟิกพื้นหลัง
+        function drawBackgroundPattern(ctx, W, H) {
+            // วาดลายจุดฮาล์ฟโทนแบบโปร่ง
+            ctx.fillStyle = 'rgba(226, 232, 240, 0.3)';
+            const dotSize = 3;
+            const spacing = 15;
+            for (let x = 0; x < W; x += spacing) {
+                for (let y = 0; y < H; y += spacing) {
+                    ctx.fillRect(x, y, dotSize, dotSize);
+                }
+            }
+            
+            // วาดรูปดาวเล็กๆ ที่มุมและตำแหน่งต่างๆ
+            const stars = [
+                { x: 60, y: 80, size: 8 },
+                { x: W - 80, y: 120, size: 6 },
+                { x: 100, y: H - 150, size: 7 },
+                { x: W - 120, y: H - 200, size: 5 },
+                { x: W / 2 - 150, y: H - 100, size: 6 }
+            ];
+            
+            ctx.fillStyle = 'rgba(226, 232, 240, 0.25)';
+            stars.forEach(star => {
+                drawStar(ctx, star.x, star.y, 5, star.size, star.size * 0.5);
+            });
+        }
+        
+        // ฟังก์ชันวาดรูปดาว
+        function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+            let rot = Math.PI / 2 * 3;
+            let step = Math.PI / spikes;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outerRadius);
+            for (let i = 0; i < spikes; i++) {
+                ctx.lineTo(cx + Math.cos(rot) * outerRadius, cy + Math.sin(rot) * outerRadius);
+                rot += step;
+                ctx.lineTo(cx + Math.cos(rot) * innerRadius, cy + Math.sin(rot) * innerRadius);
+                rot += step;
+            }
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+            ctx.fill();
         }
 
         function loadImageSafe(src) {
