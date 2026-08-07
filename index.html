@@ -753,9 +753,10 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 <!-- รูปภาพจริงที่กดค้างเพื่อบันทึกได้ -->
                 <img id="booking-slip-img" class="hidden w-full max-w-[340px] rounded-xl border border-slate-200 shadow-sm" alt="ใบยืนยันการจอง">
                 
-                <!-- คำแนะนำ -->
-                <p id="booking-slip-instruction" class="hidden mt-3 text-[11px] text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full">
-                    💡 กดค้างที่รูปเพื่อบันทึกใบยืนยันการจอง
+                <!-- คำแนะนำ (แสดงเฉพาะบนมือถือ/แนวตั้ง) -->
+                <p id="booking-slip-instruction" class="hidden sm:hidden mt-3 text-[11px] text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.674a1 1 0 01.992.883l.193 1.45a1 1 0 01-.992 1.167H9.462a1 1 0 01-.992-1.167l.193-1.45a1 1 0 01.992-.883zM12 3a7 7 0 00-7 7c0 1.697.606 3.254 1.61 4.477a.999.999 0 01.272.678l.19 2.85A1 1 0 008.07 19h7.86a1 1 0 00.998-.934l.19-2.85a1 1 0 01.272-.678A7.001 7.001 0 0012 3z" /></svg>
+                    <span>หรือกดค้างที่รูปเพื่อบันทึกใบยืนยันการจอง</span>
                 </p>
             </div>
             <div class="flex gap-2 mt-1">
@@ -966,14 +967,14 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, W, 12);
 
-            let y = 50;
+            let y = 30;
 
             const logo = await loadImageSafe('logo2.png');
             if (logo) {
                 const logoH = 90;
                 const logoW = logo.width * (logoH / logo.height);
                 ctx.drawImage(logo, (W - logoW) / 2, y, logoW, logoH);
-                y += logoH + 20;
+                y += logoH + 10;
             }
 
             ctx.textAlign = 'center';
@@ -1049,6 +1050,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             loadingDiv.classList.add('hidden');
             slipImg.classList.remove('hidden');
             instruction.classList.remove('hidden');
+            instruction.classList.add('flex'); // ใช้ flex เพื่อจัดวางไอคอนกับข้อความ
         }
 
         function loadImageSafe(src) {
@@ -1142,7 +1144,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 }
 
                 content.innerHTML = `
-                    <img src="logo2.png" class="h-16 mx-auto mb-3" onerror="this.style.display='none'">
+                    <img src="logo2.png" class="h-16 mx-auto mb-1" onerror="this.style.display='none'">
                     <h2 class="text-lg font-bold text-slate-900 mb-1">ใบยืนยันการจองพื้นที่ตลาด</h2>
                     <p class="text-sm font-bold text-slate-800 mb-0.5">ตลาดนัดอาชีพ และนิทรรศการศิลปะ</p>
                     <p class="text-xs text-slate-400 mb-4">UP-SKILL RE-SKILL · Ratchaburi Technical College</p>
@@ -1156,7 +1158,8 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                         <div class="text-[11px] text-slate-400 pt-2 border-t border-slate-100 mt-1">จองเมื่อ: ${formatTimestamp(found.timestamp)}</div>
                     </div>
                     <div class="mt-5 inline-flex items-center gap-1.5 text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full text-xs font-medium">
-                        ✓ ยืนยันการจองถูกต้อง
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                        ยืนยันการจองถูกต้อง
                     </div>`;
             } catch (err) {
                 content.innerHTML = `<div class="text-red-500 font-semibold py-6">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
