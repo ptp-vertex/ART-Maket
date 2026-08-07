@@ -128,6 +128,10 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                     <div class="w-4 h-4 rounded-sm bg-orange-400 border border-orange-500"></div>
                     <span>คนอื่นเลือกอยู่</span>
                 </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded-sm bg-violet-400 border border-violet-600"></div>
+                    <span>จองแล้วบางวัน (จองวันที่เหลือได้)</span>
+                </div>
                 <div class="flex items-center gap-2 sm:col-span-4 justify-center mt-1">
                     <div class="w-4 h-4 rounded-sm bg-slate-300 border border-slate-400"></div>
                     <span>จองสำเร็จแล้ว</span>
@@ -277,6 +281,32 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                     </button>
                 </div>
                 <div id="admin-date-list" class="flex flex-col gap-2 mt-1 text-sm"></div>
+            </div>
+
+            <!-- จัดการช่องทางติดต่อแอดมิน -->
+            <div class="bg-slate-700/50 p-4 rounded-xl border border-slate-600 flex flex-col gap-3">
+                <label class="block text-[11px] font-medium text-slate-300">ช่องทางติดต่อแอดมิน (แสดงในปุ่มลอย "ติดต่อแอดมิน")</label>
+                <div class="flex flex-col sm:flex-row gap-3 items-end">
+                    <div class="w-full sm:w-32">
+                        <label class="block text-[11px] text-slate-400 mb-1">ประเภท</label>
+                        <select id="admin-contact-type" class="w-full border border-slate-500 bg-slate-700 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white">
+                            <option value="phone">เบอร์โทร</option>
+                            <option value="other">อื่นๆ (Line, Facebook ฯลฯ)</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 w-full">
+                        <label class="block text-[11px] text-slate-400 mb-1">ชื่อช่องทาง (เช่น "แอดมินฝ่ายจอง", "Line: @market")</label>
+                        <input type="text" id="admin-contact-label" placeholder="ชื่อ / ชื่อช่องทาง" class="w-full border border-slate-500 bg-slate-700 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white">
+                    </div>
+                    <div class="flex-1 w-full">
+                        <label class="block text-[11px] text-slate-400 mb-1" id="admin-contact-value-label">เบอร์โทรศัพท์</label>
+                        <input type="text" id="admin-contact-value" placeholder="08x-xxx-xxxx" class="w-full border border-slate-500 bg-slate-700 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white">
+                    </div>
+                    <button id="admin-add-contact-btn" class="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/50 px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full sm:w-auto h-10">
+                        + เพิ่มช่องทาง
+                    </button>
+                </div>
+                <div id="admin-contact-list" class="flex flex-col gap-2 mt-1 text-sm"></div>
             </div>
         </div>
 
@@ -455,6 +485,32 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         </div>
     </div>
 
+    <!-- Floating Contact Admin Button -->
+    <button id="contact-admin-fab" class="fixed bottom-5 right-5 z-[95] bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-xl w-14 h-14 flex items-center justify-center transition-all hover:scale-105 active:scale-95" title="ติดต่อแอดมิน">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+    </button>
+
+    <!-- Contact Admin Modal -->
+    <div id="contact-admin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[100] opacity-0 transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden relative transform scale-95 transition-transform duration-300" id="contact-admin-modal-box">
+            <div class="bg-blue-600 text-white p-5">
+                <h3 class="text-base font-bold flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                    ติดต่อแอดมิน
+                </h3>
+                <p class="text-xs text-blue-100 mt-1">เลือกช่องทางที่สะดวกเพื่อติดต่อสอบถาม</p>
+            </div>
+            <div id="contact-admin-list" class="p-5 flex flex-col gap-2.5 max-h-[60vh] overflow-y-auto">
+                <!-- รายการช่องทางติดต่อ (เติมด้วย JS) -->
+            </div>
+            <div class="p-4 pt-0">
+                <button type="button" id="close-contact-admin-btn" class="inline-flex justify-center w-full rounded-xl px-4 py-3 bg-slate-100 hover:bg-slate-200 text-sm font-medium text-slate-700 transition-colors">
+                    ปิด
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Admin Login Modal -->
     <div id="admin-login-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-[110]">
         <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full mx-4 text-center relative">
@@ -615,6 +671,9 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         // สถานะเปิด/ปิดเว็บ (แอดมินควบคุมได้)
         let siteOpen = true;
         let siteClosedMessage = '';
+
+        // ช่องทางติดต่อแอดมิน (แอดมินตั้งค่าได้)
+        let contactChannels = [];
 
         // แปลง Firestore Timestamp เป็นข้อความวันที่/เวลาแบบไทยอ่านง่าย
         function formatTimestamp(ts) {
@@ -890,36 +949,72 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         let rawStallsData = {};      // ข้อมูลล็อกดิบทั้งหมดทุกวัน (key = docId เต็ม รวมวันที่ เช่น "2026-08-15__B1")
 
         // รวมสถานะของล็อกหนึ่งๆ ข้ามทุกวันที่ที่เลือกไว้ ให้เหลือสถานะเดียวเพื่อแสดงบนแผนที่
-        // - ถ้าจองแล้วในวันใดวันหนึ่ง -> ถือว่า "booked" (จองรวมไม่ได้แล้ว)
-        // - ถ้าคนอื่นล็อกอยู่ในวันใดวันหนึ่ง -> ถือว่า "locked" โดยคนอื่น
+        // - ถ้าจองแล้ว "ครบทุกวัน" ที่เลือกไว้ -> ถือว่า "booked" (จองรวมไม่ได้แล้ว)
+        // - ถ้าจองแล้ว "แค่บางวัน" ที่เลือกไว้ -> ถือว่า "partial" (ยังจองวันที่เหลือได้)
+        // - ถ้าคนอื่นล็อกอยู่ในวันที่ยังว่าง -> ถือว่า "locked" โดยคนอื่น
         // - ถ้าเราล็อกไว้ (ครบทุกวันที่เลือกหรือบางวัน) -> ถือว่า "locked" โดยเรา
         // - ถ้าว่างทุกวันที่เลือก -> "available"
         function recomputeStallsForSelectedDate() {
             globalStallsData = {};
             if (selectedDates.length === 0 || !allStalls || allStalls.length === 0) return;
             allStalls.forEach(id => {
+                const bookedDates = [];
                 let bookedData = null;
-                let lockedByOtherData = null;
-                let lockedByMeCount = 0;
+                const otherLockedDates = [];
+                let otherLockedData = null;
+                const myLockedDates = [];
+
                 selectedDates.forEach(date => {
                     const full = rawStallsData[`${date}__${id}`];
                     if (!full) return;
-                    if (full.status === 'booked' && !bookedData) {
-                        bookedData = full;
+                    if (full.status === 'booked') {
+                        bookedDates.push(date);
+                        if (!bookedData) bookedData = full;
                     } else if (full.status === 'locked') {
-                        if (full.userId === currentUser?.uid) lockedByMeCount++;
-                        else if (!lockedByOtherData) lockedByOtherData = full;
+                        if (full.userId === currentUser?.uid) {
+                            myLockedDates.push(date);
+                        } else {
+                            otherLockedDates.push(date);
+                            if (!otherLockedData) otherLockedData = full;
+                        }
                     }
                 });
-                if (bookedData) {
+
+                if (bookedDates.length > 0 && bookedDates.length === selectedDates.length) {
+                    // จองแล้วครบทุกวันที่เลือกไว้
                     globalStallsData[id] = bookedData;
-                } else if (lockedByOtherData) {
-                    globalStallsData[id] = lockedByOtherData;
-                } else if (lockedByMeCount > 0) {
+                } else if (bookedDates.length > 0) {
+                    // จองแล้วแค่บางวัน -> ยังจองวันที่เหลือ (freeDates) ได้
+                    const freeDates = selectedDates.filter(d => !bookedDates.includes(d));
+                    globalStallsData[id] = {
+                        status: 'partial',
+                        department: bookedData.department,
+                        shopName: bookedData.shopName,
+                        product: bookedData.product,
+                        contactName: bookedData.contactName,
+                        phone: bookedData.phone,
+                        bookedDates,
+                        freeDates,
+                        lockedFreeByOther: otherLockedDates.length > 0,
+                        lockedFreeByMe: myLockedDates.length > 0 && myLockedDates.length === freeDates.length,
+                        userId: myLockedDates.length > 0 ? currentUser?.uid : null
+                    };
+                } else if (otherLockedData) {
+                    globalStallsData[id] = otherLockedData;
+                } else if (myLockedDates.length > 0) {
                     globalStallsData[id] = { status: 'locked', userId: currentUser?.uid };
                 } else {
                     globalStallsData[id] = { status: 'available' };
                 }
+            });
+        }
+
+        // คืนรายการ id ของล็อกที่เรากำลังล็อกอยู่ (ทั้งล็อกเต็มทุกวัน และล็อกเฉพาะวันที่เหลือของล็อกที่จองแล้วบางวัน)
+        function getMyLockedStallIds() {
+            return Object.keys(globalStallsData).filter(id => {
+                const d = globalStallsData[id];
+                return (d.status === 'locked' && d.userId === currentUser?.uid) ||
+                       (d.status === 'partial' && d.lockedFreeByMe);
             });
         }
 
@@ -1119,6 +1214,10 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                             toggleBox.className = `p-4 rounded-xl border-2 flex flex-col gap-3 transition-colors ${siteOpen ? 'border-emerald-500/50 bg-emerald-500/10' : 'border-red-500/50 bg-red-500/10'}`;
                         }
 
+                        contactChannels = Array.isArray(settings.contactChannels) ? settings.contactChannels : [];
+                        renderContactChannels();
+                        renderAdminContactChannels();
+
                         checkSiteAccess();
                     }
                 });
@@ -1137,7 +1236,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         }
 
         function updateAdminStats() {
-            const bookedCount = Object.values(globalStallsData).filter(d => d.status === 'booked').length;
+            const bookedCount = Object.values(globalStallsData).filter(d => d.status === 'booked' || d.status === 'partial').length;
             document.getElementById('admin-stats-badge').innerText = `จองแล้ว ${bookedCount}/50 ล็อค`;
         }
 
@@ -1159,7 +1258,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 }
 
                 const btn = document.createElement('button');
-                btn.className = `relative w-[46px] h-[30px] flex items-center justify-center text-[11px] font-medium border border-slate-600 transition-all duration-200 select-none`;
+                btn.className = `relative w-[46px] h-[30px] flex flex-col items-center justify-center text-[11px] font-medium border border-slate-600 transition-all duration-200 select-none`;
                 
                 if (status === 'booked') {
                     btn.classList.add('bg-slate-300', 'text-slate-500', 'opacity-80', 'hover:bg-slate-400', 'cursor-pointer');
@@ -1187,7 +1286,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                         btn.onclick = (e) => { 
                             if (!isZoomed) return;
                             e.stopPropagation(); 
-                            toggleStall(id, status, owner); 
+                            toggleStall(id, stallData || { status: 'available' }); 
                         };
                     } else {
                         btn.classList.add('bg-orange-400', 'text-white', 'cursor-not-allowed');
@@ -1198,6 +1297,40 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                             showModal('พื้นที่ไม่ว่าง', 'กำลังมีผู้ใช้งานท่านอื่นเลือกพื้นที่นี้อยู่ กรุณาเลือกล็อคอื่น', 'warning'); 
                         };
                     }
+                } else if (status === 'partial') {
+                    // จองแล้วบางวัน (ไม่ใช่ทุกวันที่เลือกไว้) -> สีต่างจาก booked ปกติ ยังจองวันที่เหลือได้
+                    btn.classList.remove('h-[30px]');
+                    btn.classList.add('bg-violet-400', 'text-violet-950', 'border-violet-600', 'h-[38px]', 'overflow-hidden', 'px-0.5');
+                    const bookedLabel = stallData.bookedDates.map(formatDateLabel).join(', ');
+                    const freeLabel = stallData.freeDates.map(formatDateLabel).join(', ');
+                    btn.title = `แผนก: ${stallData.department}\nจองแล้ววันที่: ${bookedLabel}\nยังว่างวันที่: ${freeLabel}`;
+                    const partialLabel = `<span class="z-10 leading-tight">${id}</span><span class="text-[7px] leading-none font-normal opacity-90 z-10 whitespace-nowrap" style="transform: scale(0.68); transform-origin: center;">จองแล้วบางวัน</span>`;
+
+                    if (stallData.lockedFreeByOther) {
+                        btn.classList.add('cursor-not-allowed', 'opacity-90');
+                        btn.innerHTML = `<span class="opacity-60 leading-tight">${id}</span><span class="text-[7px] leading-none font-normal opacity-70 whitespace-nowrap" style="transform: scale(0.68); transform-origin: center;">จองแล้วบางวัน</span><svg class="w-3 h-3 absolute top-0.5 right-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>`;
+                        btn.onclick = (e) => {
+                            if (!isZoomed) return;
+                            e.stopPropagation();
+                            showModal('พื้นที่ไม่ว่าง', 'ล็อกนี้ไม่ว่างในบางวันที่คุณเลือกไว้ กรุณาเลือกล็อกอื่น', 'warning');
+                        };
+                    } else if (stallData.lockedFreeByMe) {
+                        btn.classList.add('ring-2', 'ring-blue-600', 'shadow-inner', 'transform', 'scale-95');
+                        btn.innerHTML = partialLabel;
+                        btn.onclick = (e) => {
+                            if (!isZoomed) return;
+                            e.stopPropagation();
+                            toggleStall(id, stallData);
+                        };
+                    } else {
+                        btn.classList.add('hover:bg-violet-500', 'cursor-pointer');
+                        btn.innerHTML = partialLabel;
+                        btn.onclick = (e) => {
+                            if (!isZoomed) return;
+                            e.stopPropagation();
+                            toggleStall(id, stallData);
+                        };
+                    }
                 } else {
                     if (zone === 'B') btn.classList.add('bg-yellow-300', 'text-slate-800', 'hover:bg-yellow-400');
                     if (zone === 'C') btn.classList.add('bg-lime-400', 'text-slate-800', 'hover:bg-lime-500');
@@ -1205,7 +1338,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                     btn.onclick = (e) => { 
                         if (!isZoomed) return;
                         e.stopPropagation(); 
-                        toggleStall(id, status, owner); 
+                        toggleStall(id, stallData || { status: 'available' }); 
                     };
                 }
 
@@ -1220,6 +1353,8 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 caption.className = 'text-[6.5px] leading-[1.1] text-slate-500 text-center w-[46px] truncate pointer-events-none';
                 if (status === 'booked' && stallData) {
                     caption.innerHTML = `${shortenDept(stallData.department)}`;
+                } else if (status === 'partial' && stallData) {
+                    caption.innerHTML = `${shortenDept(stallData.department)} (บางวัน)`;
                 } else {
                     caption.innerHTML = '&nbsp;';
                 }
@@ -1237,7 +1372,8 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             if (!dept) { box.classList.add('hidden'); box.innerHTML = ''; return; }
 
             const deptStalls = Object.keys(globalStallsData).filter(k =>
-                globalStallsData[k].status === 'booked' && globalStallsData[k].department === dept
+                (globalStallsData[k].status === 'booked' || globalStallsData[k].status === 'partial') &&
+                globalStallsData[k].department === dept
             ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
             box.classList.remove('hidden');
@@ -1253,22 +1389,25 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
 
             deptStalls.forEach(id => {
                 const data = globalStallsData[id];
+                const isPartial = data.status === 'partial';
                 const card = document.createElement('div');
                 card.className = 'p-2 rounded-lg border border-slate-200 bg-white';
                 card.innerHTML = `
                     <div class="flex justify-between items-center gap-2">
                         <div class="min-w-0">
-                            <span class="font-semibold text-slate-700">ล็อก ${id}</span>
+                            <span class="font-semibold text-slate-700">ล็อก ${id}</span>${isPartial ? ` <span class="text-[10px] text-violet-600 font-medium">(จองแล้วบางวัน)</span>` : ''}
                             <div class="text-[11px] text-slate-600 truncate">ชื่อร้าน: <b>${data.shopName || '-'}</b></div>
                             <div class="text-[11px] text-slate-600 truncate">สินค้าที่ขาย: <b>${data.product || '-'}</b></div>
                             <div class="text-[10px] text-slate-400">ชื่อ-นามสกุล / เบอร์โทร: <b>••••••••••</b></div>
                         </div>
-                        <button data-id="${id}" class="dept-edit-select-btn shrink-0 text-[11px] font-medium text-blue-600 hover:text-blue-800 border border-current rounded-lg px-2 py-1 whitespace-nowrap">
+                        ${isPartial ? '' : `<button data-id="${id}" class="dept-edit-select-btn shrink-0 text-[11px] font-medium text-blue-600 hover:text-blue-800 border border-current rounded-lg px-2 py-1 whitespace-nowrap">
                             ยืนยันสิทธิ์เพื่อแก้ไข
-                        </button>
+                        </button>`}
                     </div>
                 `;
-                card.querySelector('.dept-edit-select-btn').onclick = () => openEditModal(id, data, false);
+                if (!isPartial) {
+                    card.querySelector('.dept-edit-select-btn').onclick = () => openEditModal(id, data, false);
+                }
                 listWrap.appendChild(card);
             });
 
@@ -1277,7 +1416,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         document.getElementById('input-department').addEventListener('change', updateDeptInfoBox);
 
         // --- Logic: Click Stall ---
-        async function toggleStall(id, currentStatus, owner) {
+        async function toggleStall(id, stallData) {
             if (!isFirebaseReady) return;
             if (selectedDates.length === 0) {
                 showModal('กรุณาเลือกวันที่', 'กรุณาเลือกวันที่ที่ต้องการจองก่อนเลือกล็อก', 'warning');
@@ -1290,6 +1429,9 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 return;
             }
 
+            const currentStatus = stallData.status;
+            const owner = stallData.userId;
+
             try {
                 if (currentStatus === 'locked' && owner === currentUser.uid) {
                     // ปลดล็อกทุกวันที่เลือกไว้พร้อมกัน
@@ -1297,12 +1439,8 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                         deleteDoc(doc(stallsRef, `${date}__${id}`)).catch(() => {})
                     ));
                 } else if (currentStatus === 'available') {
-                    const myLocks = Object.keys(globalStallsData).filter(key => 
-                        globalStallsData[key].userId === currentUser.uid && 
-                        globalStallsData[key].status === 'locked'
-                    );
-                    
-                    if (myLocks.length >= 2) {
+                    const myLockedIds = getMyLockedStallIds();
+                    if (myLockedIds.length >= 2 && !myLockedIds.includes(id)) {
                         showModal('จำกัดสิทธิ์', 'คุณสามารถเลือกจองได้สูงสุด 2 ล็อคเท่านั้น', 'warning');
                         return;
                     }
@@ -1316,6 +1454,33 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                             timestamp: serverTimestamp()
                         })
                     ));
+                } else if (currentStatus === 'partial') {
+                    // จองแล้วบางวัน -> จัดการเฉพาะวันที่ยังว่าง (freeDates) เท่านั้น ไม่แตะวันที่จองแล้ว
+                    if (stallData.lockedFreeByOther) {
+                        showModal('พื้นที่ไม่ว่าง', 'ล็อกนี้ไม่ว่างในบางวันที่คุณเลือกไว้ กรุณาเลือกล็อกอื่น', 'warning');
+                        return;
+                    }
+                    if (stallData.lockedFreeByMe) {
+                        // ปลดล็อกเฉพาะวันที่เหลือที่เราล็อกไว้
+                        await Promise.all(stallData.freeDates.map(date =>
+                            deleteDoc(doc(stallsRef, `${date}__${id}`)).catch(() => {})
+                        ));
+                    } else {
+                        const myLockedIds = getMyLockedStallIds();
+                        if (myLockedIds.length >= 2 && !myLockedIds.includes(id)) {
+                            showModal('จำกัดสิทธิ์', 'คุณสามารถเลือกจองได้สูงสุด 2 ล็อคเท่านั้น', 'warning');
+                            return;
+                        }
+                        // ล็อกเฉพาะวันที่ยังว่างของล็อกนี้
+                        await Promise.all(stallData.freeDates.map(date =>
+                            setDoc(doc(stallsRef, `${date}__${id}`), {
+                                status: 'locked',
+                                userId: currentUser.uid,
+                                eventDate: date,
+                                timestamp: serverTimestamp()
+                            })
+                        ));
+                    }
                 } else {
                     showModal('พื้นที่ไม่ว่าง', 'ล็อกนี้ไม่ว่างในบางวันที่คุณเลือกไว้ กรุณาเลือกล็อกอื่น', 'warning');
                 }
@@ -1337,21 +1502,20 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
 
         // --- Logic: Sidebar Update ---
         function updateSidebar() {
-            const myLocks = Object.keys(globalStallsData).filter(key => 
-                globalStallsData[key].userId === currentUser.uid && 
-                globalStallsData[key].status === 'locked'
-            ).sort((a,b) => a.localeCompare(b, undefined, {numeric: true}));
+            const myLockedIds = getMyLockedStallIds().sort((a,b) => a.localeCompare(b, undefined, {numeric: true}));
 
             selectedListEl.innerHTML = '';
             let hasContent = false;
 
-            if (myLocks.length > 0) {
+            if (myLockedIds.length > 0) {
                 hasContent = true;
-                myLocks.forEach(id => {
+                myLockedIds.forEach(id => {
+                    const d = globalStallsData[id];
+                    const isPartial = d.status === 'partial';
                     const item = document.createElement('div');
                     item.className = 'flex justify-between items-center p-2 bg-blue-50 rounded border border-blue-100';
                     item.innerHTML = `
-                        <span class="font-medium text-blue-700">ล็อค ${id}</span>
+                        <span class="font-medium text-blue-700">ล็อค ${id}${isPartial ? ` <span class="font-normal text-[11px] text-violet-600">(เฉพาะ ${d.freeDates.map(formatDateLabel).join(', ')})</span>` : ''}</span>
                         <button class="text-slate-400 hover:text-red-500 p-1 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -1359,7 +1523,8 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                         </button>
                     `;
                     item.querySelector('button').onclick = () => {
-                        selectedDates.forEach(date => deleteDoc(doc(stallsRef, `${date}__${id}`)).catch(() => {}));
+                        const datesToUnlock = isPartial ? d.freeDates : selectedDates;
+                        datesToUnlock.forEach(date => deleteDoc(doc(stallsRef, `${date}__${id}`)).catch(() => {}));
                     };
                     selectedListEl.appendChild(item);
                 });
@@ -1370,17 +1535,14 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             }
 
             // ปุ่มด้านล่าง: เปิดใช้งานเมื่อมีล็อกที่เลือกใหม่
-            bookBtn.disabled = myLocks.length === 0;
+            bookBtn.disabled = myLockedIds.length === 0;
         }
 
         // --- Logic: Submit Booking ---
         bookBtn.onclick = async () => {
             // ---------- โหมดจองล็อกใหม่ (ปกติ) ----------
-            const myLocks = Object.keys(globalStallsData).filter(key => 
-                globalStallsData[key].userId === currentUser.uid && 
-                globalStallsData[key].status === 'locked'
-            );
-            if (myLocks.length === 0) return;
+            const myLockedIds = getMyLockedStallIds();
+            if (myLockedIds.length === 0) return;
 
             const dept = document.getElementById('input-department').value;
             const shop = document.getElementById('input-shop').value.trim();
@@ -1399,11 +1561,17 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 return;
             }
 
-            const deptBookedCount = Object.values(globalStallsData).filter(data => 
-                data.status === 'booked' && data.department === dept
-            ).length;
+            // นับล็อกที่แผนกนี้มีอยู่แล้ว (ทั้งจองครบทุกวัน และจองแล้วบางวัน) โดยไม่นับซ้ำกับล็อกที่กำลังจะจองเพิ่มรอบนี้
+            const deptBookedCount = Object.keys(globalStallsData).filter(id => {
+                const d = globalStallsData[id];
+                return (d.status === 'booked' && d.department === dept) ||
+                       (d.status === 'partial' && d.department === dept && !myLockedIds.includes(id));
+            }).length;
 
-            if (deptBookedCount + myLocks.length > maxPerDept) {
+            // ล็อกที่กำลังจะจองรอบนี้ที่ยังไม่เคยถูกนับไปแล้ว (เช่น ล็อกใหม่ทั้งหมด หรือล็อกที่จองบางวันของแผนกอื่น)
+            const newLocksCount = myLockedIds.length;
+
+            if (deptBookedCount + newLocksCount > maxPerDept) {
                 showModal('โควต้าเต็ม', `แผนก "${dept}" มีการจองพื้นที่ไปแล้ว ${deptBookedCount} ล็อค\n(จำกัดสูงสุด ${maxPerDept} ล็อค/แผนก)`, 'error');
                 return;
             }
@@ -1411,9 +1579,13 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             bookBtn.disabled = true;
             bookBtn.innerHTML = 'กำลังบันทึกข้อมูล...';
 
+            const allBookedDatesSet = new Set();
             try {
-                for (const id of myLocks) {
-                    for (const date of selectedDates) {
+                for (const id of myLockedIds) {
+                    const d = globalStallsData[id];
+                    // ล็อกที่จองแล้วบางวัน -> จองเฉพาะวันที่ยังว่าง (freeDates) เท่านั้น ไม่แตะวันที่จองแล้วของแผนกอื่น
+                    const datesToBook = d.status === 'partial' ? d.freeDates : selectedDates;
+                    for (const date of datesToBook) {
                         await updateDoc(doc(stallsRef, `${date}__${id}`), {
                             status: 'booked',
                             department: dept,
@@ -1424,12 +1596,14 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                             eventDate: date,
                             timestamp: serverTimestamp()
                         });
+                        allBookedDatesSet.add(date);
                     }
                 }
-                
+
+                const allBookedDates = availableDates.map(d => d.date).filter(date => allBookedDatesSet.has(date));
                 resetBookingFormInputs();
-                showModal('สำเร็จ!', `บันทึกการจองพื้นที่ ${myLocks.join(', ')} เรียบร้อยแล้ว`, 'success');
-                showBookingSlip(myLocks, dept, shop, product, name, phone, [...selectedDates]);
+                showModal('สำเร็จ!', `บันทึกการจองพื้นที่ ${myLockedIds.join(', ')} เรียบร้อยแล้ว`, 'success');
+                showBookingSlip(myLockedIds, dept, shop, product, name, phone, allBookedDates);
             } catch (err) {
                 showModal('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้', 'error');
                 bookBtn.disabled = false;
@@ -1469,6 +1643,121 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 modal.classList.remove('flex');
             }, 300);
         };
+
+        // --- ปุ่มลอย "ติดต่อแอดมิน" ---
+        const contactAdminModal = document.getElementById('contact-admin-modal');
+        const contactAdminModalBox = document.getElementById('contact-admin-modal-box');
+
+        function openContactAdminModal() {
+            contactAdminModal.classList.remove('hidden');
+            contactAdminModal.classList.add('flex');
+            setTimeout(() => {
+                contactAdminModal.classList.remove('opacity-0');
+                contactAdminModalBox.classList.remove('scale-95');
+            }, 10);
+        }
+        function closeContactAdminModal() {
+            contactAdminModal.classList.add('opacity-0');
+            contactAdminModalBox.classList.add('scale-95');
+            setTimeout(() => {
+                contactAdminModal.classList.add('hidden');
+                contactAdminModal.classList.remove('flex');
+            }, 300);
+        }
+        document.getElementById('contact-admin-fab').onclick = openContactAdminModal;
+        document.getElementById('close-contact-admin-btn').onclick = closeContactAdminModal;
+        contactAdminModal.addEventListener('click', (e) => { if (e.target === contactAdminModal) closeContactAdminModal(); });
+
+        // แสดงรายการช่องทางติดต่อในป็อปอัพสำหรับผู้ใช้ทั่วไป
+        function renderContactChannels() {
+            const box = document.getElementById('contact-admin-list');
+            if (!box) return;
+            box.innerHTML = '';
+            if (!contactChannels || contactChannels.length === 0) {
+                box.innerHTML = '<div class="text-slate-400 italic text-sm text-center py-4">ยังไม่มีการตั้งค่าช่องทางติดต่อ</div>';
+                return;
+            }
+            contactChannels.forEach(ch => {
+                const isPhone = ch.type === 'phone';
+                const el = document.createElement(isPhone ? 'a' : 'div');
+                el.className = 'flex items-center gap-3 border border-slate-200 rounded-xl px-4 py-3 hover:bg-slate-50 transition-colors' + (isPhone ? ' cursor-pointer' : '');
+                if (isPhone) el.href = `tel:${ch.value.replace(/[^0-9+]/g, '')}`;
+                const iconWrap = document.createElement('div');
+                iconWrap.className = `flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${isPhone ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}`;
+                iconWrap.innerHTML = isPhone
+                    ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>`
+                    : `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>`;
+                const textWrap = document.createElement('div');
+                textWrap.className = 'flex-1 min-w-0';
+                textWrap.innerHTML = `<div class="font-semibold text-slate-800 text-sm truncate">${ch.label || (isPhone ? 'เบอร์โทร' : 'ช่องทางติดต่อ')}</div><div class="text-slate-500 text-xs truncate">${ch.value}</div>`;
+                el.appendChild(iconWrap);
+                el.appendChild(textWrap);
+                if (isPhone) {
+                    const callBadge = document.createElement('span');
+                    callBadge.className = 'flex-shrink-0 text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg';
+                    callBadge.innerText = 'โทร';
+                    el.appendChild(callBadge);
+                }
+                box.appendChild(el);
+            });
+        }
+
+        // --- แอดมิน: จัดการช่องทางติดต่อ ---
+        document.getElementById('admin-contact-type').addEventListener('change', (e) => {
+            const isPhone = e.target.value === 'phone';
+            document.getElementById('admin-contact-value-label').innerText = isPhone ? 'เบอร์โทรศัพท์' : 'ลิงก์ / ไอดี / รายละเอียด';
+            document.getElementById('admin-contact-value').placeholder = isPhone ? '08x-xxx-xxxx' : 'เช่น @market หรือ https://...';
+        });
+
+        function renderAdminContactChannels() {
+            const box = document.getElementById('admin-contact-list');
+            if (!box) return;
+            box.innerHTML = '';
+            if (!contactChannels || contactChannels.length === 0) {
+                box.innerHTML = '<div class="text-slate-400 italic text-xs">ยังไม่มีช่องทางติดต่อ กรุณาเพิ่มด้านบน</div>';
+                return;
+            }
+            contactChannels.forEach((ch, idx) => {
+                const row = document.createElement('div');
+                row.className = 'flex justify-between items-center bg-slate-800/60 border border-slate-600 rounded-lg px-3 py-2 gap-2';
+                row.innerHTML = `<span class="truncate"><span class="text-[10px] font-semibold px-1.5 py-0.5 rounded ${ch.type === 'phone' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-blue-500/20 text-blue-300'} mr-2">${ch.type === 'phone' ? 'โทร' : 'อื่นๆ'}</span>${ch.label || ''} <span class="text-slate-400 text-xs">(${ch.value})</span></span>`;
+                const delBtn = document.createElement('button');
+                delBtn.className = 'flex-shrink-0 text-red-400 hover:text-red-300 text-xs font-medium px-2 py-1 hover:bg-red-500/10 rounded transition-colors';
+                delBtn.innerText = 'ลบ';
+                delBtn.onclick = async () => {
+                    if (!confirm('ยืนยันการลบช่องทางติดต่อนี้?')) return;
+                    const updated = contactChannels.filter((_, i) => i !== idx);
+                    try {
+                        await setDoc(adminSettingsRef, { contactChannels: updated }, { merge: true });
+                    } catch (e) {
+                        showModal('ขัดข้อง', 'ไม่สามารถลบช่องทางติดต่อได้', 'error');
+                    }
+                };
+                row.appendChild(delBtn);
+                box.appendChild(row);
+            });
+        }
+
+        document.getElementById('admin-add-contact-btn').addEventListener('click', async () => {
+            const type = document.getElementById('admin-contact-type').value;
+            const label = document.getElementById('admin-contact-label').value.trim();
+            const value = document.getElementById('admin-contact-value').value.trim();
+            if (!label || !value) {
+                alert('กรุณากรอกชื่อช่องทางและข้อมูลติดต่อให้ครบ'); return;
+            }
+            const updated = [...contactChannels, { type, label, value }];
+            const btn = document.getElementById('admin-add-contact-btn');
+            btn.disabled = true;
+            try {
+                await setDoc(adminSettingsRef, { contactChannels: updated }, { merge: true });
+                document.getElementById('admin-contact-label').value = '';
+                document.getElementById('admin-contact-value').value = '';
+            } catch (e) {
+                showModal('ขัดข้อง', 'ไม่สามารถเพิ่มช่องทางติดต่อได้', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        });
 
         // --- EDIT MODAL LOGIC (ระบบแก้ไขข้อมูล) ---
         function openEditModal(id, data, isAdmin = false) {
@@ -1971,7 +2260,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             }
             
             const stallsToDelete = Object.keys(globalStallsData).filter(
-                k => globalStallsData[k].status === 'booked' && globalStallsData[k].department === dept
+                k => (globalStallsData[k].status === 'booked' || globalStallsData[k].status === 'partial') && globalStallsData[k].department === dept
             );
 
             if (stallsToDelete.length === 0) {
@@ -1994,7 +2283,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         // แอดมิน: โหลด Excel
         document.getElementById('export-excel-btn').onclick = () => {
             const bookedStalls = Object.keys(globalStallsData)
-                .filter(key => globalStallsData[key].status === 'booked')
+                .filter(key => globalStallsData[key].status === 'booked' || globalStallsData[key].status === 'partial')
                 .map(key => ({ id: key, ...globalStallsData[key] }));
 
             if (bookedStalls.length === 0) {
