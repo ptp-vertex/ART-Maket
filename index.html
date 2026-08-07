@@ -67,6 +67,15 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
 </head>
 <body class="text-slate-800">
 
+    <!-- แถบนับถอยหลังเวลาล็อกการเลือก (ลอยด้านบนจอ, เรียลไทม์) -->
+    <div id="lock-countdown-bar" class="hidden fixed top-0 left-0 right-0 z-[130] flex justify-center pointer-events-none">
+        <div class="pointer-events-auto mt-2 flex items-center gap-2 bg-slate-900/95 text-white pl-3 pr-4 py-2 rounded-full shadow-xl border border-amber-400/60 text-sm font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span>เหลือเวลาเลือกล็อก:</span>
+            <span id="lock-countdown-text" class="font-bold tabular-nums text-amber-300">20:00</span>
+        </div>
+    </div>
+
     <!-- Overlay ล็อกอิน (เลือกแผนกก่อนเข้าใช้งาน) -->
     <div id="dept-login-overlay" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[120] flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-7">
@@ -334,6 +343,17 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 </div>
                 <button id="admin-save-quota-btn" class="bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white border border-blue-500/50 px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full sm:w-auto h-10">
                     บันทึกโควต้า
+                </button>
+            </div>
+
+            <!-- ตั้งเวลาหมดอายุการเลือกล็อก (นับถอยหลัง) -->
+            <div class="bg-slate-700/50 p-4 rounded-xl border border-slate-600 flex flex-col sm:flex-row gap-3 items-end">
+                <div class="flex-1 w-full">
+                    <label class="block text-[11px] font-medium text-slate-300 mb-1.5">เวลานับถอยหลังก่อนยกเลิกการเลือกล็อกอัตโนมัติ (ปัจจุบัน: <span id="current-lock-duration">20</span> นาที)</label>
+                    <input type="number" id="admin-lock-duration-input" min="1" max="180" value="20" class="w-full border border-slate-500 bg-slate-700 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white">
+                </div>
+                <button id="admin-save-lock-duration-btn" class="bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white border border-blue-500/50 px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full sm:w-auto h-10">
+                    บันทึกเวลา
                 </button>
             </div>
 
@@ -731,7 +751,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         let currentUser = null;
         let globalStallsData = {}; 
         let isFirebaseReady = false;
-        const LOCK_EXPIRY_MS = 20 * 60 * 1000; // เซสชันการเลือกล็อก หมดอายุใน 20 นาที
+        let LOCK_EXPIRY_MS = 20 * 60 * 1000; // เซสชันการเลือกล็อก หมดอายุใน N นาที (แอดมินตั้งค่าได้)
 
         // ล้างล็อก (สถานะ 'locked') ที่เกิน 20 นาทีโดยไม่กดยืนยันการจอง (ตรวจสอบข้าม raw ข้อมูลทุกวัน)
         async function cleanupExpiredLocks() {
@@ -753,9 +773,62 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             }
 
             if (wasMyLockExpired) {
-                showModal('หมดเวลาเลือกล็อก', 'การเลือกล็อกของคุณหมดอายุ (เกิน 20 นาที) กรุณาเลือกล็อกใหม่อีกครั้ง', 'warning');
+                showModal('หมดเวลาเลือกล็อก', `การเลือกล็อกของคุณหมดอายุ (เกิน ${Math.round(LOCK_EXPIRY_MS / 60000)} นาที) กรุณาเลือกล็อกใหม่อีกครั้ง`, 'warning');
             }
         }
+
+        // อัปเดตแถบนับถอยหลัง (ลอยด้านบนจอ) แบบเรียลไทม์ ตามล็อกที่เรากำลังเลือกอยู่
+        function updateLockCountdownBar() {
+            const bar = document.getElementById('lock-countdown-bar');
+            const textEl = document.getElementById('lock-countdown-text');
+            if (!bar || !textEl || !currentUser) return;
+
+            // หาล็อกที่เราถืออยู่ (status locked, เป็นของเรา) แล้วหาเวลาหมดอายุที่ใกล้ที่สุด
+            let earliestExpiry = null;
+            Object.keys(rawStallsData).forEach(fullId => {
+                const data = rawStallsData[fullId];
+                if (data.status === 'locked' && data.userId === currentUser.uid && data.timestamp && data.timestamp.toMillis) {
+                    const expiry = data.timestamp.toMillis() + LOCK_EXPIRY_MS;
+                    if (earliestExpiry === null || expiry < earliestExpiry) earliestExpiry = expiry;
+                }
+            });
+
+            if (earliestExpiry === null) {
+                bar.classList.add('hidden');
+                return;
+            }
+
+            const remainingMs = earliestExpiry - Date.now();
+            if (remainingMs <= 0) {
+                bar.classList.add('hidden');
+                return;
+            }
+
+            const totalSec = Math.ceil(remainingMs / 1000);
+            const mm = Math.floor(totalSec / 60).toString().padStart(2, '0');
+            const ss = (totalSec % 60).toString().padStart(2, '0');
+            textEl.innerText = `${mm}:${ss}`;
+            bar.classList.remove('hidden');
+
+            // เปลี่ยนสีเป็นแดงเมื่อเหลือเวลาน้อยกว่า 1 นาที เพื่อเตือนผู้ใช้
+            textEl.classList.toggle('text-red-400', totalSec <= 60);
+            textEl.classList.toggle('text-amber-300', totalSec > 60);
+        }
+        setInterval(updateLockCountdownBar, 1000);
+
+        // ยกเลิกล็อกทั้งหมดที่เราถืออยู่ทันที (ใช้ตอนปิด/ออกจากเว็บ) - ทำแบบ best-effort ไม่รอผลลัพธ์
+        function cancelMyLocksOnExit() {
+            if (!currentUser || !isFirebaseReady) return;
+            Object.keys(rawStallsData).forEach(fullId => {
+                const data = rawStallsData[fullId];
+                if (data.status === 'locked' && data.userId === currentUser.uid) {
+                    try { deleteDoc(doc(stallsRef, fullId)); } catch (e) { /* best-effort */ }
+                }
+            });
+        }
+        // เมื่อผู้ใช้ปิดแท็บ/ปิดเว็บ หรือสลับออกจากหน้าอย่างถาวร ให้ยกเลิกการเลือกล็อกทันที
+        window.addEventListener('pagehide', cancelMyLocksOnExit);
+        window.addEventListener('beforeunload', cancelMyLocksOnExit);
 
         let isAdminAuthenticated = false; // สถานะแอดมิน
         let maxPerDept = 2; // โควต้าจำนวนล็อคต่อแผนก (แอดมินแก้ไขได้)
@@ -1515,6 +1588,12 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                             document.getElementById('header-max-dept').innerText = maxPerDept;
                             updateDeptInfoBox();
                             renderDashboard(); renderAdminDayDashboard(); // อัปเดตแดชบอร์ดของฉัน (จำนวนคอลัมน์เปลี่ยนตามโควต้า)
+                        }
+
+                        if (settings.lockDurationMinutes) {
+                            LOCK_EXPIRY_MS = settings.lockDurationMinutes * 60 * 1000;
+                            document.getElementById('current-lock-duration').innerText = settings.lockDurationMinutes;
+                            document.getElementById('admin-lock-duration-input').value = settings.lockDurationMinutes;
                         }
 
                         siteOpen = settings.siteOpen !== false; // ค่าเริ่มต้นคือเปิด
@@ -2887,6 +2966,20 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 showModal('สำเร็จ', `ตั้งค่าโควต้าเป็น ${val} ล็อค/แผนก เรียบร้อยแล้ว`, 'success');
             } catch (e) {
                 showModal('ขัดข้อง', 'ไม่สามารถบันทึกโควต้าได้', 'error');
+            }
+        };
+
+        // แอดมิน: บันทึกเวลานับถอยหลังก่อนยกเลิกการเลือกล็อกอัตโนมัติ
+        document.getElementById('admin-save-lock-duration-btn').onclick = async () => {
+            const val = parseInt(document.getElementById('admin-lock-duration-input').value, 10);
+            if (!val || val < 1) {
+                alert('กรุณากรอกจำนวนนาทีที่ถูกต้อง (อย่างน้อย 1 นาที)'); return;
+            }
+            try {
+                await setDoc(adminSettingsRef, { lockDurationMinutes: val }, { merge: true });
+                showModal('สำเร็จ', `ตั้งค่าเวลานับถอยหลังเป็น ${val} นาที เรียบร้อยแล้ว`, 'success');
+            } catch (e) {
+                showModal('ขัดข้อง', 'ไม่สามารถบันทึกเวลานับถอยหลังได้', 'error');
             }
         };
 
