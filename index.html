@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -28,10 +29,27 @@
 
     <div class="max-w-6xl mx-auto p-4 md:p-6 lg:p-8">
         
+        <!-- Event Banner: แถบชื่องาน + โลโก้ (สีสันตามธีมโลโก้) -->
+        <div class="mb-6 rounded-2xl overflow-hidden shadow-lg border-2 border-slate-900 relative">
+            <div class="absolute inset-0" style="background: linear-gradient(100deg, #e6127f 0%, #f9c400 45%, #17b3a3 75%, #7c3aed 100%);"></div>
+            <div class="absolute inset-0 opacity-15 pointer-events-none" style="background-image: radial-gradient(#000 1.2px, transparent 1.2px); background-size: 12px 12px;"></div>
+            <div class="relative flex flex-col sm:flex-row items-center gap-3 sm:gap-5 p-4 sm:p-5">
+                <img src="logo2.png" alt="โลโก้ตลาดนัดอาชีพและนิทรรศการศิลปะ" class="h-20 sm:h-24 w-auto shrink-0 drop-shadow-[0_3px_3px_rgba(0,0,0,0.35)]" onerror="this.style.display='none'">
+                <div class="text-center sm:text-left">
+                    <h1 class="text-xl sm:text-3xl font-extrabold text-white leading-tight" style="text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;">
+                        ตลาดนัดอาชีพ และนิทรรศการศิลปะ
+                    </h1>
+                    <p class="text-sm sm:text-base font-bold text-white mt-0.5" style="text-shadow: 1.5px 1.5px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;">
+                        UP-SKILL RE-SKILL · Ratchaburi Technical College
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <header class="mb-6 text-center md:text-left flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
             <div>
                 <h1 class="text-3xl font-bold text-slate-900 mb-2">ระบบจองพื้นที่ตลาด</h1>
-                <p class="text-slate-500 text-sm">โซน B และ C (จำกัด 2 ล็อค/แผนก) • ระบบอัปเดตแบบ Real-time</p>
+                <p class="text-slate-500 text-sm">โซน B และ C (จำกัด <span id="header-max-dept">2</span> ล็อค/แผนก) • ระบบอัปเดตแบบ Real-time</p>
             </div>
             
             <!-- Legend -->
@@ -78,6 +96,42 @@
                         โหลด Excel
                     </button>
                 </div>
+            </div>
+
+            <!-- จัดการโควต้าการจอง -->
+            <div class="bg-slate-700/50 p-4 rounded-xl border border-slate-600 flex flex-col sm:flex-row gap-3 items-end">
+                <div class="flex-1 w-full">
+                    <label class="block text-[11px] font-medium text-slate-300 mb-1.5">จำกัดจำนวนล็อคที่จองได้ต่อแผนก (ปัจจุบัน: <span id="current-max-dept">2</span> ล็อค)</label>
+                    <input type="number" id="admin-max-dept-input" min="1" max="26" value="2" class="w-full border border-slate-500 bg-slate-700 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white">
+                </div>
+                <button id="admin-save-quota-btn" class="bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white border border-blue-500/50 px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full sm:w-auto h-10">
+                    บันทึกโควต้า
+                </button>
+            </div>
+
+            <!-- ระบบประกาศ (Popup แจ้งเตือนเมื่อเข้าเว็บครั้งแรก) -->
+            <div class="bg-slate-700/50 p-4 rounded-xl border border-slate-600 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <label class="text-[11px] font-medium text-slate-300">ระบบประกาศ (Popup แสดงเมื่อเข้าเว็บครั้งแรก)</label>
+                    <label class="flex items-center gap-2 text-xs text-slate-200 cursor-pointer select-none">
+                        <input type="checkbox" id="admin-announce-active" class="w-4 h-4 accent-emerald-500">
+                        เปิดใช้งานประกาศ
+                    </label>
+                </div>
+                <textarea id="admin-announce-text" rows="3" placeholder="พิมพ์ข้อความประกาศที่นี่..." class="w-full border border-slate-500 bg-slate-700 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white resize-none"></textarea>
+                <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                    <label class="flex items-center gap-2 bg-slate-600/60 hover:bg-slate-600 px-3 py-2 rounded-lg text-xs font-medium cursor-pointer transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        แนบรูปภาพ (บีบอัดอัตโนมัติ)
+                        <input type="file" id="admin-announce-image-input" accept="image/*" class="hidden">
+                    </label>
+                    <span id="admin-announce-img-status" class="text-[11px] text-slate-400"></span>
+                    <button id="admin-announce-remove-image-btn" class="text-[11px] text-red-400 hover:text-red-300 underline">ลบรูปภาพ</button>
+                </div>
+                <img id="admin-announce-preview" class="hidden max-h-40 rounded-lg border border-slate-500 object-contain bg-slate-900/40" alt="ตัวอย่างรูปประกาศ">
+                <button id="admin-announce-save-btn" class="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/50 px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full sm:w-auto self-start">
+                    บันทึกประกาศ
+                </button>
             </div>
 
             <!-- จัดการรายแผนก -->
@@ -218,6 +272,7 @@
                                 <option value="แผนกวิชาการจัดการโลจิสติกส์">แผนกวิชาการจัดการโลจิสติกส์</option>
                                 <option value="แผนกวิชาการโรงแรม">แผนกวิชาการโรงแรม</option>
                             </select>
+                            <div id="dept-info-box" class="hidden mt-2 text-[11px] leading-relaxed bg-slate-50 border border-slate-200 rounded-lg p-2"></div>
                         </div>
                         <div>
                             <label class="block text-[11px] font-medium text-slate-600 mb-1">ชื่อร้าน <span class="text-red-500">*</span></label>
@@ -245,6 +300,24 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- Announcement Popup (ประกาศ - แสดงเมื่อเข้าเว็บครั้งแรก) -->
+    <div id="announcement-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-[130] opacity-0 transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative transform scale-95 transition-transform duration-300" id="announcement-modal-box">
+            <button id="close-announcement-btn" class="absolute top-3 right-3 z-10 bg-white/90 hover:bg-white text-slate-500 hover:text-slate-800 rounded-full p-1.5 shadow-md transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <img id="announce-popup-image" class="hidden w-full max-h-[60vh] object-contain bg-slate-100" alt="ประกาศ">
+            <div class="p-5">
+                <h3 class="text-base font-bold text-slate-800 mb-2 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
+                    ประกาศ
+                </h3>
+                <p id="announce-popup-text" class="text-sm text-slate-600 whitespace-pre-line"></p>
+                <button id="close-announcement-btn-2" class="mt-4 w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 rounded-xl transition-colors">รับทราบ</button>
+            </div>
         </div>
     </div>
 
@@ -292,8 +365,11 @@
             <button id="close-edit-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
-            <h3 class="text-lg font-bold mb-4 text-slate-800" id="edit-modal-title">แก้ไขข้อมูลล็อค</h3>
-            
+            <h3 class="text-lg font-bold mb-3 text-slate-800" id="edit-modal-title">แก้ไขข้อมูลล็อค</h3>
+
+            <!-- กล่องแสดงข้อมูลร้าน (แสดงตลอด ไม่ต้องยืนยันสิทธิ์) -->
+            <div id="edit-info-box" class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4 text-sm text-slate-700 space-y-1"></div>
+
             <!-- Step 1: Verify (ข้ามได้ถ้าเป็นแอดมิน) -->
             <div id="edit-verify-step">
                 <p class="text-sm text-slate-500 mb-4">กรุณากรอก <span class="font-bold text-red-500">ชื่อ และ เบอร์โทรเดิม</span> เพื่อยืนยันสิทธิ์การแก้ไขข้อมูล</p>
@@ -374,10 +450,39 @@
         let globalStallsData = {}; 
         let isFirebaseReady = false;
         let isAdminAuthenticated = false; // สถานะแอดมิน
+        let maxPerDept = 2; // โควต้าจำนวนล็อคต่อแผนก (แอดมินแก้ไขได้)
+
+        // สถานะการเลือกล็อกที่จองแล้วเพื่อขอแก้ไขข้อมูล (จากแถบด้านข้าง)
+        let editingStallId = null;
+        let editingStallData = null;
+        let editingVerified = false;
+
+        // สถานะระบบประกาศ (Popup)
+        let pendingAnnouncementImage = null; // รูปที่เพิ่งบีบอัด รอบันทึก
+        let currentAnnouncementData = null;
+
+        // แปลง Firestore Timestamp เป็นข้อความวันที่/เวลาแบบไทยอ่านง่าย
+        function formatTimestamp(ts) {
+            if (!ts || typeof ts.toDate !== 'function') return '-';
+            const d = ts.toDate();
+            const dd = String(d.getDate()).padStart(2, '0');
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const yyyy = d.getFullYear() + 543;
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mi = String(d.getMinutes()).padStart(2, '0');
+            return `${dd}/${mm}/${yyyy} ${hh}:${mi} น.`;
+        }
+
+        // ย่อชื่อแผนกให้สั้นลงสำหรับแสดงใต้กล่องล็อก
+        function shortenDept(dept) {
+            if (!dept) return '';
+            return dept.replace('แผนกวิชา', '').replace('แผนก', '');
+        }
 
         const artifactAppId = typeof __app_id !== 'undefined' ? __app_id : 'market-booking-app';
         const stallsRef = collection(db, 'artifacts', artifactAppId, 'public', 'data', 'stalls');
         const adminSettingsRef = doc(db, 'artifacts', artifactAppId, 'public', 'adminSettings');
+        const announcementRef = doc(db, 'artifacts', artifactAppId, 'public', 'announcement');
 
         // --- UI Variables ---
         const rowBContainer = document.getElementById('row-b');
@@ -442,8 +547,26 @@
                     renderMap(); 
                     updateSidebar();
                     updateAdminStats(); // อัปเดตสถิติของแอดมิน
+                    updateDeptInfoBox(); // อัปเดตข้อมูลแผนกที่กำลังเลือกอยู่
                 });
                 
+                onSnapshot(adminSettingsRef, (snap) => {
+                    if (snap.exists() && snap.data().maxPerDept) {
+                        maxPerDept = snap.data().maxPerDept;
+                        document.getElementById('current-max-dept').innerText = maxPerDept;
+                        document.getElementById('admin-max-dept-input').value = maxPerDept;
+                        document.getElementById('header-max-dept').innerText = maxPerDept;
+                        updateDeptInfoBox();
+                    }
+                });
+
+                onSnapshot(announcementRef, (snap) => {
+                    const data = snap.exists() ? snap.data() : null;
+                    currentAnnouncementData = data;
+                    syncAnnouncementAdminForm(data);
+                    maybeShowAnnouncementPopup(data);
+                });
+
                 checkAdminMode();
             } catch (err) {
                 console.error("Auth Error:", err);
@@ -491,7 +614,7 @@
                         btn.onclick = (e) => {
                             if (!isZoomed) return;
                             e.stopPropagation();
-                            openEditModal(id, stallData, false); // User mode
+                            selectStallForEdit(id, stallData); // User mode - เลือกล็อกเพื่อแก้ไขในแถบด้านข้าง
                         };
                     }
                 } else if (status === 'locked') {
@@ -523,10 +646,42 @@
                     };
                 }
 
-                if (zone === 'B') rowBContainer.appendChild(btn);
-                else rowCContainer.appendChild(btn);
+                const wrapper = document.createElement('div');
+                wrapper.className = 'flex flex-col items-center gap-0.5';
+                wrapper.appendChild(btn);
+
+                const caption = document.createElement('div');
+                caption.className = 'text-[6.5px] leading-[1.1] text-slate-500 text-center w-[46px] truncate pointer-events-none';
+                if (status === 'booked' && stallData) {
+                    caption.innerHTML = `${shortenDept(stallData.department)}<br>${formatTimestamp(stallData.timestamp)}`;
+                } else {
+                    caption.innerHTML = '&nbsp;<br>&nbsp;';
+                }
+                wrapper.appendChild(caption);
+
+                if (zone === 'B') rowBContainer.appendChild(wrapper);
+                else rowCContainer.appendChild(wrapper);
             });
         }
+
+        // --- Logic: แสดงข้อมูลแผนกที่เลือกในฟอร์มจอง ---
+        function updateDeptInfoBox() {
+            const box = document.getElementById('dept-info-box');
+            const dept = document.getElementById('input-department').value;
+            if (!dept) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+
+            const deptStalls = Object.keys(globalStallsData).filter(k =>
+                globalStallsData[k].status === 'booked' && globalStallsData[k].department === dept
+            ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+            box.classList.remove('hidden');
+            if (deptStalls.length === 0) {
+                box.innerHTML = `<span class="text-emerald-600">แผนก "${dept}" ยังไม่มีการจองล็อคใดๆ (0/${maxPerDept} ล็อค)</span>`;
+            } else {
+                box.innerHTML = `<span class="text-slate-600">แผนก "${dept}" ถูกจองไปแล้วที่ล็อก <b class="text-slate-800">${deptStalls.join(', ')}</b> (${deptStalls.length}/${maxPerDept} ล็อค)</span>`;
+            }
+        }
+        document.getElementById('input-department').addEventListener('change', updateDeptInfoBox);
 
         // --- Logic: Click Stall ---
         async function toggleStall(id, currentStatus, owner) {
@@ -535,6 +690,12 @@
             // แอดมินไม่สามารถจองพื้นที่ได้
             if (isAdminAuthenticated) {
                 showModal('แจ้งเตือน', 'แอดมินไม่สามารถจองพื้นที่ได้\nคุณสามารถแก้ไข หรือลบข้อมูลได้อย่างเดียว', 'warning');
+                return;
+            }
+
+            // ถ้ากำลังแก้ไขล็อกที่จองแล้วอยู่ ต้องยกเลิกก่อนถึงจะเลือกล็อกใหม่ได้
+            if (editingStallId) {
+                showModal('กำลังแก้ไขข้อมูล', 'กรุณากดยกเลิก (X) ที่รายการกำลังแก้ไขในแถบด้านข้างก่อน จึงจะเลือกล็อกใหม่ได้', 'warning');
                 return;
             }
 
@@ -563,6 +724,57 @@
             }
         }
 
+        // --- Logic: เลือกล็อกที่จองแล้ว เพื่อขอแก้ไขข้อมูล (แสดงในแถบด้านข้าง) ---
+        function selectStallForEdit(id, data) {
+            if (isAdminAuthenticated) return;
+
+            const myLocks = Object.keys(globalStallsData).filter(key => 
+                globalStallsData[key].userId === currentUser.uid && 
+                globalStallsData[key].status === 'locked'
+            );
+            if (myLocks.length > 0) {
+                showModal('กำลังเลือกล็อกใหม่อยู่', 'กรุณายกเลิกการเลือกล็อกใหม่ในแถบด้านข้างก่อน จึงจะขอแก้ไขล็อกที่จองแล้วได้', 'warning');
+                return;
+            }
+
+            editingStallId = id;
+            editingStallData = data;
+            editingVerified = false;
+            resetBookingFormInputs();
+            updateSidebar();
+        }
+
+        function cancelEditSelection() {
+            editingStallId = null;
+            editingStallData = null;
+            editingVerified = false;
+            resetBookingFormInputs();
+            updateSidebar();
+        }
+
+        // ล้างค่าฟอร์มด้านข้างและคืนปุ่มเป็นโหมด "จอง" ปกติ
+        function resetBookingFormInputs() {
+            document.getElementById('input-department').value = '';
+            document.getElementById('input-shop').value = '';
+            document.getElementById('input-product').value = '';
+            document.getElementById('input-name').value = '';
+            document.getElementById('input-phone').value = '';
+            document.getElementById('dept-info-box').classList.add('hidden');
+            bookBtn.innerHTML = 'ยืนยันการจอง';
+        }
+
+        // เมื่อยืนยันสิทธิ์แล้ว: ดึงข้อมูลเดิมมาใส่ในฟอร์มเพื่อแก้ไข
+        function enterEditFormMode() {
+            document.getElementById('input-department').value = editingStallData.department || '';
+            document.getElementById('input-shop').value = editingStallData.shopName || '';
+            document.getElementById('input-product').value = editingStallData.product || '';
+            document.getElementById('input-name').value = editingStallData.contactName || '';
+            document.getElementById('input-phone').value = editingStallData.phone || '';
+            updateDeptInfoBox();
+            bookBtn.innerHTML = `บันทึกการแก้ไข (ล็อก ${editingStallId})`;
+            bookBtn.disabled = false;
+        }
+
         // --- Logic: Sidebar Update ---
         function updateSidebar() {
             const myLocks = Object.keys(globalStallsData).filter(key => 
@@ -570,12 +782,77 @@
                 globalStallsData[key].status === 'locked'
             ).sort((a,b) => a.localeCompare(b, undefined, {numeric: true}));
 
-            if (myLocks.length === 0) {
-                selectedListEl.innerHTML = '';
-                selectedListEl.appendChild(emptyStateEl);
-                bookBtn.disabled = true;
-            } else {
-                selectedListEl.innerHTML = '';
+            selectedListEl.innerHTML = '';
+            let hasContent = false;
+
+            // --- การ์ดล็อกที่กำลังขอแก้ไขข้อมูล (คลิกล็อกที่จองแล้ว) ---
+            if (editingStallId && globalStallsData[editingStallId] && globalStallsData[editingStallId].status === 'booked') {
+                hasContent = true;
+                const data = globalStallsData[editingStallId];
+                editingStallData = data; // sync ข้อมูลล่าสุด
+
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-xl border-2 flex flex-col gap-2 transition-colors ${editingVerified ? 'border-yellow-400 bg-yellow-50' : 'border-slate-200 bg-slate-50'}`;
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start gap-2">
+                        <div class="min-w-0">
+                            <span class="font-semibold text-slate-700">ล็อก ${editingStallId}</span>
+                            <div class="text-xs text-slate-600 mt-1 truncate">ชื่อร้าน: <b>${data.shopName || '-'}</b></div>
+                            <div class="text-xs text-slate-600 truncate">สินค้าที่ขาย: <b>${data.product || '-'}</b></div>
+                            <div class="text-[11px] text-slate-400 mt-1">ชื่อ-นามสกุล / เบอร์โทร: <b>••••••••••</b></div>
+                        </div>
+                        <button id="cancel-edit-select-btn" class="shrink-0 text-slate-400 hover:text-red-500 p-1 transition-colors" title="ยกเลิก / เลือกล็อกอื่น">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                    ${!editingVerified ? `
+                    <div class="border-t border-slate-200 pt-2 mt-1 flex flex-col gap-1.5">
+                        <p class="text-[11px] text-slate-500">กรอกชื่อ-นามสกุล และเบอร์โทรที่เคยกรอกไว้ เพื่อยืนยันสิทธิ์แก้ไข</p>
+                        <input type="text" id="sidebar-verify-name" placeholder="ชื่อ-นามสกุล (เดิม)" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-blue-500">
+                        <input type="tel" id="sidebar-verify-phone" maxlength="12" placeholder="เบอร์โทร (เดิม)" class="w-full border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:border-blue-500">
+                        <button id="sidebar-verify-btn" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium py-2 rounded-lg transition-colors">ยืนยันเพื่อแก้ไข</button>
+                    </div>` : `
+                    <div class="text-[11px] text-emerald-700 flex items-center gap-1 pt-1 border-t border-yellow-200 mt-1">
+                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        ยืนยันสิทธิ์แล้ว แก้ไขข้อมูลในฟอร์มด้านล่างแล้วกด "บันทึกการแก้ไข"
+                    </div>`}
+                `;
+                selectedListEl.appendChild(card);
+
+                card.querySelector('#cancel-edit-select-btn').onclick = cancelEditSelection;
+
+                if (!editingVerified) {
+                    const nameInput = card.querySelector('#sidebar-verify-name');
+                    const phoneInput = card.querySelector('#sidebar-verify-phone');
+                    phoneInput.addEventListener('input', formatPhoneNumber);
+                    card.querySelector('#sidebar-verify-btn').onclick = () => {
+                        const inputName = nameInput.value.trim();
+                        const inputPhone = phoneInput.value.trim();
+                        if (!inputName || !inputPhone) {
+                            alert('กรุณากรอกชื่อและเบอร์โทรเดิมเพื่อตรวจสอบ'); return;
+                        }
+                        const normInputName = normalizeName(inputName);
+                        const normActualName = normalizeName(data.contactName || '');
+                        const isNameMatch = normActualName.includes(normInputName) || normInputName.includes(normActualName);
+                        const isPhoneMatch = inputPhone.replace(/\D/g, '') === (data.phone || '').replace(/\D/g, '');
+
+                        if (isNameMatch && isPhoneMatch) {
+                            editingVerified = true;
+                            updateSidebar();
+                            enterEditFormMode();
+                        } else {
+                            alert('ข้อมูลไม่ตรงกัน\n\nโปรดตรวจสอบชื่อ และเบอร์โทรของคนที่จองล็อคนี้อีกครั้ง');
+                        }
+                    };
+                }
+            }
+
+            // --- รายการล็อกที่กำลังเลือกใหม่ (โหมดจองปกติ) ---
+            if (!editingStallId && myLocks.length > 0) {
+                hasContent = true;
                 myLocks.forEach(id => {
                     const item = document.createElement('div');
                     item.className = 'flex justify-between items-center p-2 bg-blue-50 rounded border border-blue-100';
@@ -590,12 +867,78 @@
                     item.querySelector('button').onclick = () => deleteDoc(doc(stallsRef, id));
                     selectedListEl.appendChild(item);
                 });
-                bookBtn.disabled = false;
             }
+
+            if (!hasContent) {
+                selectedListEl.appendChild(emptyStateEl);
+            }
+
+            // ปุ่มด้านล่าง: เปิดใช้งานเมื่อมีล็อกที่เลือกใหม่ หรือยืนยันสิทธิ์แก้ไขแล้ว
+            bookBtn.disabled = !((editingStallId && editingVerified) || (!editingStallId && myLocks.length > 0));
         }
 
         // --- Logic: Submit Booking ---
         bookBtn.onclick = async () => {
+            // ---------- โหมดแก้ไขล็อกที่จองแล้ว (ยืนยันสิทธิ์แล้ว) ----------
+            if (editingStallId && editingVerified) {
+                const dept = document.getElementById('input-department').value;
+                const shop = document.getElementById('input-shop').value.trim();
+                const product = document.getElementById('input-product').value.trim();
+                const name = document.getElementById('input-name').value.trim();
+                const phone = document.getElementById('input-phone').value.trim();
+
+                if (!dept || !shop || !product || !name || !phone) {
+                    showModal('ข้อมูลไม่ครบ', 'กรุณากรอกข้อมูลในฟอร์มให้ครบถ้วน', 'warning');
+                    return;
+                }
+                const phoneDigits = phone.replace(/\D/g, '');
+                if (phoneDigits.length !== 10) {
+                    showModal('เบอร์โทรไม่ถูกต้อง', 'กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก', 'warning');
+                    return;
+                }
+
+                // ถ้าเปลี่ยนแผนก ต้องเช็คโควต้าแผนกใหม่ (ไม่นับล็อกตัวเองที่กำลังแก้ไข)
+                if (dept !== editingStallData.department) {
+                    const deptBookedCount = Object.keys(globalStallsData).filter(key =>
+                        key !== editingStallId &&
+                        globalStallsData[key].status === 'booked' &&
+                        globalStallsData[key].department === dept
+                    ).length;
+                    if (deptBookedCount + 1 > maxPerDept) {
+                        showModal('โควต้าเต็ม', `แผนก "${dept}" มีการจองพื้นที่ไปแล้ว ${deptBookedCount} ล็อค\n(จำกัดสูงสุด ${maxPerDept} ล็อค/แผนก)`, 'error');
+                        return;
+                    }
+                }
+
+                bookBtn.disabled = true;
+                const savingId = editingStallId;
+                bookBtn.innerHTML = 'กำลังบันทึกข้อมูล...';
+
+                try {
+                    await updateDoc(doc(stallsRef, savingId), {
+                        department: dept,
+                        shopName: shop,
+                        product: product,
+                        contactName: name,
+                        phone: phone,
+                        lastEditAt: serverTimestamp()
+                    });
+
+                    editingStallId = null;
+                    editingStallData = null;
+                    editingVerified = false;
+                    resetBookingFormInputs();
+                    updateSidebar();
+                    showModal('บันทึกสำเร็จ', `แก้ไขข้อมูลล็อก ${savingId} เรียบร้อยแล้ว`, 'success');
+                } catch (err) {
+                    showModal('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้', 'error');
+                    bookBtn.disabled = false;
+                    bookBtn.innerHTML = `บันทึกการแก้ไข (ล็อก ${savingId})`;
+                }
+                return;
+            }
+
+            // ---------- โหมดจองล็อกใหม่ (ปกติ) ----------
             const myLocks = Object.keys(globalStallsData).filter(key => 
                 globalStallsData[key].userId === currentUser.uid && 
                 globalStallsData[key].status === 'locked'
@@ -623,8 +966,8 @@
                 data.status === 'booked' && data.department === dept
             ).length;
 
-            if (deptBookedCount + myLocks.length > 2) {
-                showModal('โควต้าเต็ม', `แผนก "${dept}" มีการจองพื้นที่ไปแล้ว ${deptBookedCount} ล็อค\n(จำกัดสูงสุด 2 ล็อค/แผนก)`, 'error');
+            if (deptBookedCount + myLocks.length > maxPerDept) {
+                showModal('โควต้าเต็ม', `แผนก "${dept}" มีการจองพื้นที่ไปแล้ว ${deptBookedCount} ล็อค\n(จำกัดสูงสุด ${maxPerDept} ล็อค/แผนก)`, 'error');
                 return;
             }
 
@@ -644,12 +987,7 @@
                     });
                 }
                 
-                document.getElementById('input-shop').value = '';
-                document.getElementById('input-product').value = '';
-                document.getElementById('input-name').value = '';
-                document.getElementById('input-phone').value = '';
-                
-                bookBtn.innerHTML = 'ยืนยันการจอง';
+                resetBookingFormInputs();
                 showModal('สำเร็จ!', `บันทึกการจองพื้นที่ ${myLocks.join(', ')} เรียบร้อยแล้ว`, 'success');
             } catch (err) {
                 showModal('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้', 'error');
@@ -699,6 +1037,13 @@
             editModalTitle.innerText = `แก้ไขข้อมูลล็อค ${id}`;
             document.getElementById('verify-name').value = '';
             document.getElementById('verify-phone').value = '';
+
+            document.getElementById('edit-info-box').innerHTML = `
+                <div><span class="text-slate-400">แผนก:</span> <b>${data.department || '-'}</b></div>
+                <div><span class="text-slate-400">ชื่อร้าน:</span> <b>${data.shopName || '-'}</b></div>
+                <div><span class="text-slate-400">ขายอะไร:</span> <b>${data.product || '-'}</b></div>
+                <div class="text-[11px] text-slate-400 pt-1 border-t border-slate-200 mt-1">จองเมื่อ: ${formatTimestamp(data.timestamp)}</div>
+            `;
             
             if (isAdmin) {
                 // แอดมินข้ามสเต็ปยืนยันไปเลย
@@ -952,6 +1297,185 @@
                 showModal('สำเร็จ', 'เปลี่ยนรหัสผ่านแอดมินเรียบร้อยแล้ว', 'success');
             } catch (e) {
                 alert('ไม่สามารถบันทึกรหัสผ่านได้');
+            }
+        };
+
+        // ================= ระบบประกาศ (Popup) =================
+
+        // บีบอัดรูปภาพฝั่ง Client ก่อนเก็บลง Firestore (จำกัดขนาดเอกสารได้ ~1MB)
+        function compressAnnouncementImage(file, maxWidth = 900, quality = 0.72) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        let w = img.width, h = img.height;
+                        if (w > maxWidth) {
+                            h = Math.round(h * (maxWidth / w));
+                            w = maxWidth;
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(0, 0, w, h);
+                        ctx.drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.onerror = () => reject(new Error('โหลดรูปภาพไม่สำเร็จ'));
+                    img.src = e.target.result;
+                };
+                reader.onerror = () => reject(new Error('อ่านไฟล์ไม่สำเร็จ'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // อัปเดตฟอร์มแอดมินให้ตรงกับข้อมูลประกาศล่าสุดใน Firestore
+        function syncAnnouncementAdminForm(data) {
+            const textEl = document.getElementById('admin-announce-text');
+            const activeEl = document.getElementById('admin-announce-active');
+            const preview = document.getElementById('admin-announce-preview');
+            if (!textEl || !activeEl || !preview) return;
+
+            if (!pendingAnnouncementImage) {
+                textEl.value = data && data.text ? data.text : '';
+                if (data && data.image) {
+                    preview.src = data.image;
+                    preview.classList.remove('hidden');
+                } else {
+                    preview.src = '';
+                    preview.classList.add('hidden');
+                }
+            }
+            activeEl.checked = !!(data && data.active);
+        }
+
+        // แสดง Popup ประกาศ เมื่อเข้าเว็บครั้งแรก (หรือเมื่อประกาศมีการอัปเดตใหม่)
+        function maybeShowAnnouncementPopup(data) {
+            if (!data || !data.active) return;
+            if (!data.text && !data.image) return;
+
+            const seenId = localStorage.getItem('market_announcement_seen');
+            if (data.annId && String(data.annId) === seenId) return;
+
+            const img = document.getElementById('announce-popup-image');
+            if (data.image) {
+                img.src = data.image;
+                img.classList.remove('hidden');
+            } else {
+                img.src = '';
+                img.classList.add('hidden');
+            }
+            document.getElementById('announce-popup-text').innerText = data.text || '';
+
+            const modalEl = document.getElementById('announcement-modal');
+            const boxEl = document.getElementById('announcement-modal-box');
+            modalEl.classList.remove('hidden');
+            modalEl.classList.add('flex');
+            setTimeout(() => {
+                modalEl.classList.remove('opacity-0');
+                boxEl.classList.remove('scale-95');
+            }, 10);
+
+            if (data.annId) {
+                localStorage.setItem('market_announcement_seen', String(data.annId));
+            }
+        }
+
+        function closeAnnouncementModal() {
+            const modalEl = document.getElementById('announcement-modal');
+            const boxEl = document.getElementById('announcement-modal-box');
+            modalEl.classList.add('opacity-0');
+            boxEl.classList.add('scale-95');
+            setTimeout(() => {
+                modalEl.classList.add('hidden');
+                modalEl.classList.remove('flex');
+            }, 300);
+        }
+        document.getElementById('close-announcement-btn').onclick = closeAnnouncementModal;
+        document.getElementById('close-announcement-btn-2').onclick = closeAnnouncementModal;
+
+        // แอดมิน: เลือกรูปภาพประกาศ -> บีบอัดอัตโนมัติ -> แสดงตัวอย่าง
+        document.getElementById('admin-announce-image-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const statusEl = document.getElementById('admin-announce-img-status');
+            statusEl.innerText = 'กำลังบีบอัดรูปภาพ...';
+            try {
+                const dataUrl = await compressAnnouncementImage(file);
+                pendingAnnouncementImage = dataUrl;
+                const sizeKb = Math.round((dataUrl.length * 0.75) / 1024);
+                statusEl.innerText = `บีบอัดสำเร็จ (~${sizeKb} KB) กด "บันทึกประกาศ" เพื่อยืนยัน`;
+                const preview = document.getElementById('admin-announce-preview');
+                preview.src = dataUrl;
+                preview.classList.remove('hidden');
+            } catch (err) {
+                statusEl.innerText = '';
+                alert('ไม่สามารถประมวลผลรูปภาพได้ ลองใช้รูปอื่น');
+            }
+        });
+
+        // แอดมิน: ลบรูปภาพประกาศ
+        document.getElementById('admin-announce-remove-image-btn').onclick = async () => {
+            pendingAnnouncementImage = null;
+            document.getElementById('admin-announce-image-input').value = '';
+            document.getElementById('admin-announce-img-status').innerText = '';
+            const preview = document.getElementById('admin-announce-preview');
+            preview.src = '';
+            preview.classList.add('hidden');
+            try {
+                await setDoc(announcementRef, { image: '' }, { merge: true });
+            } catch (e) { /* เงียบไว้ ไม่ต้องแจ้งเตือนถ้ายังไม่เคยมีประกาศ */ }
+        };
+
+        // แอดมิน: บันทึกประกาศ (ข้อความ + รูปภาพ + สถานะเปิด/ปิด)
+        document.getElementById('admin-announce-save-btn').onclick = async () => {
+            const text = document.getElementById('admin-announce-text').value.trim();
+            const active = document.getElementById('admin-announce-active').checked;
+            const hasExistingImage = currentAnnouncementData && currentAnnouncementData.image;
+
+            if (!text && !pendingAnnouncementImage && !hasExistingImage) {
+                alert('กรุณากรอกข้อความ หรือแนบรูปภาพอย่างน้อย 1 อย่าง');
+                return;
+            }
+
+            const payload = {
+                text: text,
+                active: active,
+                annId: Date.now()
+            };
+            if (pendingAnnouncementImage) payload.image = pendingAnnouncementImage;
+
+            const btn = document.getElementById('admin-announce-save-btn');
+            btn.disabled = true;
+            btn.innerText = 'กำลังบันทึก...';
+
+            try {
+                await setDoc(announcementRef, payload, { merge: true });
+                pendingAnnouncementImage = null;
+                document.getElementById('admin-announce-image-input').value = '';
+                document.getElementById('admin-announce-img-status').innerText = '';
+                showModal('สำเร็จ', 'บันทึกประกาศเรียบร้อยแล้ว ผู้เข้าชมใหม่จะเห็น Popup นี้ทันที', 'success');
+            } catch (e) {
+                showModal('ขัดข้อง', 'ไม่สามารถบันทึกประกาศได้ (รูปอาจมีขนาดใหญ่เกินไป ลองแนบรูปที่เล็กลง)', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'บันทึกประกาศ';
+            }
+        };
+
+        // แอดมิน: บันทึกโควต้าจำนวนล็อคต่อแผนก
+        document.getElementById('admin-save-quota-btn').onclick = async () => {
+            const val = parseInt(document.getElementById('admin-max-dept-input').value, 10);
+            if (!val || val < 1) {
+                alert('กรุณากรอกจำนวนล็อคที่ถูกต้อง (อย่างน้อย 1 ล็อค)'); return;
+            }
+            try {
+                await setDoc(adminSettingsRef, { maxPerDept: val }, { merge: true });
+                showModal('สำเร็จ', `ตั้งค่าโควต้าเป็น ${val} ล็อค/แผนก เรียบร้อยแล้ว`, 'success');
+            } catch (e) {
+                showModal('ขัดข้อง', 'ไม่สามารถบันทึกโควต้าได้', 'error');
             }
         };
 
