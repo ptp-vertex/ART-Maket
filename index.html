@@ -740,8 +740,23 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
     <div id="booking-slip-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-[130] p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-5 flex flex-col gap-3 max-h-[92vh] overflow-y-auto">
             <h3 class="text-lg font-bold text-center text-slate-900">ใบยืนยันการจองพื้นที่</h3>
-            <div id="booking-slip-canvas-wrap" class="flex justify-center">
-                <canvas id="booking-slip-canvas" class="w-full max-w-[340px] rounded-xl border border-slate-200 shadow-sm"></canvas>
+            <div id="booking-slip-canvas-wrap" class="flex flex-col items-center">
+                <!-- ส่วนสำหรับสร้างรูปภาพ (ซ่อนไว้) -->
+                <canvas id="booking-slip-canvas" class="hidden"></canvas>
+                
+                <!-- ส่วนแสดงผล Loading / Refinement -->
+                <div id="booking-slip-loading" class="w-full aspect-[3/4] max-w-[340px] bg-slate-50 rounded-xl border border-dashed border-slate-300 flex flex-col items-center justify-center gap-3">
+                    <div class="animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent"></div>
+                    <p id="booking-slip-status-text" class="text-slate-500 font-medium">กำลังเตรียมข้อมูล...</p>
+                </div>
+
+                <!-- รูปภาพจริงที่กดค้างเพื่อบันทึกได้ -->
+                <img id="booking-slip-img" class="hidden w-full max-w-[340px] rounded-xl border border-slate-200 shadow-sm" alt="ใบยืนยันการจอง">
+                
+                <!-- คำแนะนำ -->
+                <p id="booking-slip-instruction" class="hidden mt-3 text-[11px] text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full">
+                    💡 กดค้างที่รูปเพื่อบันทึกใบยืนยันการจอง
+                </p>
             </div>
             <div class="flex gap-2 mt-1">
                 <button id="booking-slip-close-btn" class="flex-1 bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium py-2.5 rounded-xl transition-colors">ปิด</button>
@@ -908,22 +923,41 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         // --- สร้างและแสดงใบยืนยันการจอง (Canvas + QR Code) ---
         async function showBookingSlip(lockIds, dept, shop, product, name, phone, dates) {
             const modal = document.getElementById('booking-slip-modal');
+            const loadingDiv = document.getElementById('booking-slip-loading');
+            const statusText = document.getElementById('booking-slip-status-text');
+            const slipImg = document.getElementById('booking-slip-img');
+            const instruction = document.getElementById('booking-slip-instruction');
             const canvas = document.getElementById('booking-slip-canvas');
             const ctx = canvas.getContext('2d');
 
+            // แสดง Modal และ Loading ก่อน
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            loadingDiv.classList.remove('hidden');
+            slipImg.classList.add('hidden');
+            instruction.classList.add('hidden');
+
+            // ขั้นตอนที่ 1
+            statusText.innerText = 'กำลังสร้างรูปภาพ ครั้งที่ 1...';
+            await new Promise(r => setTimeout(r, 1500));
+
+            // ขั้นตอนที่ 2
+            statusText.innerText = 'กำลังสร้างรูปภาพ ครั้งที่ 2... (ปรับความชัด)';
+            await new Promise(r => setTimeout(r, 1500));
+
+            // ขั้นตอนสุดท้าย: สร้างจริง
+            statusText.innerText = 'กำลังประมวลผลขั้นตอนสุดท้าย...';
+
             const W = 720, padding = 40;
-            // คำนวณความสูงคร่าวๆ ตามจำนวนบรรทัดที่ต้องแสดง
             const lineH = 34;
             const detailLines = 6 + dates.length + Math.ceil(lockIds.join(', ').length / 40);
-            const H = 354 + detailLines * lineH + 320; // เผื่อพื้นที่ QR ด้านล่าง
+            const H = 354 + detailLines * lineH + 320; 
             canvas.width = W;
             canvas.height = H;
 
-            // พื้นหลัง
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, W, H);
 
-            // แถบหัวกระดาษสี
             const grad = ctx.createLinearGradient(0, 0, W, 0);
             grad.addColorStop(0, '#e6127f');
             grad.addColorStop(0.45, '#f9c400');
@@ -934,7 +968,6 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
 
             let y = 50;
 
-            // โลโก้ (logo2.png)
             const logo = await loadImageSafe('logo2.png');
             if (logo) {
                 const logoH = 90;
@@ -964,7 +997,6 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             ctx.stroke();
             y += 40;
 
-            // รายละเอียด
             ctx.textAlign = 'left';
             const drawRow = (label, value) => {
                 ctx.font = '16px Kanit, sans-serif';
@@ -1000,7 +1032,6 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             ctx.fillText('สแกน QR Code ด้านล่างเพื่อตรวจสอบข้อมูลการจองนี้', W / 2, y);
             y += 20;
 
-            // สร้าง QR Code
             try {
                 const receiptUrl = buildReceiptUrl(lockIds, dates);
                 const qrDataUrl = await QRCode.toDataURL(receiptUrl, { width: 260, margin: 1 });
@@ -1011,8 +1042,13 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 console.error('QR generation failed', e);
             }
 
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            // แปลง Canvas เป็นรูปภาพเพื่อให้กดค้างบันทึกได้บนมือถือ
+            slipImg.src = canvas.toDataURL('image/png');
+            
+            // สลับการแสดงผล
+            loadingDiv.classList.add('hidden');
+            slipImg.classList.remove('hidden');
+            instruction.classList.remove('hidden');
         }
 
         function loadImageSafe(src) {
