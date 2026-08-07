@@ -467,7 +467,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 <p class="text-xs text-slate-500 mb-4">* เอาเมาส์ชี้แล้ว <span class="font-bold text-blue-600">คลิกที่แผนที่ 1 ครั้ง</span> เพื่อซูมเข้าไปใกล้ๆ</p>
                 
                 <!-- Fixed Size Viewport - No Scroll -->
-                <div class="w-full h-[450px] sm:h-[550px] overflow-hidden rounded-xl border border-slate-200 bg-slate-50 relative cursor-crosshair" id="mapViewport">
+                <div class="w-full h-[260px] sm:h-[450px] md:h-[550px] overflow-hidden rounded-xl border border-slate-200 bg-slate-50 relative cursor-crosshair" id="mapViewport">
 
                     <!-- Overlay: ต้องเลือกวันที่ก่อนถึงจะเห็น/จองแผนที่ได้ -->
                     <div id="date-gate-overlay" class="absolute inset-0 bg-white/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-center p-6 gap-2">
@@ -2662,8 +2662,11 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 const originX = (x / rect.width) * 100;
                 const originY = (y / rect.height) * 100;
 
+                // จอเล็ก (มือถือ) กรอบเตี้ยกว่า จึงลดระดับซูมลง ไม่ให้ซูมเข้าไปแน่นกว่าจอคอมฯ
+                const zoomLevel = window.innerWidth < 640 ? 1.8 : 2.5;
+
                 mapScaleWrapper.style.transformOrigin = `${originX}% ${originY}%`;
-                mapScaleWrapper.style.transform = `scale(2.5)`; 
+                mapScaleWrapper.style.transform = `scale(${zoomLevel})`; 
 
                 isZoomed = true;
                 zoomBox.classList.add('hidden');
