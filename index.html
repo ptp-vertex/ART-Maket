@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ระบบจองพื้นที่ตลาด (Real-time)</title>
+    <title>ระบบจองพื้นที่ตลาด</title>
 
     <!-- รูปตัวอย่าง (Preview) สำหรับตอนแชร์ลิงก์ใน LINE / Facebook -->
     <meta property="og:type" content="website">
@@ -66,6 +66,28 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
     </style>
 </head>
 <body class="text-slate-800">
+
+    <!-- หน้าจอโหลด (แสดงทับทุกอย่างไว้ก่อน กันไม่ให้เห็นหน้าอื่นกระพริบตอนเปิดเว็บ) -->
+    <div id="page-loading-overlay" class="fixed inset-0 z-[200] flex items-center justify-center bg-white transition-opacity duration-300 overflow-hidden">
+        <!-- พื้นหลังลายจุดฮาล์ฟโทน ให้เข้าธีมโลโก้ -->
+        <div class="absolute inset-0 opacity-[0.08] pointer-events-none" style="background-image: radial-gradient(circle, #0f172a 1.6px, transparent 1.6px); background-size: 16px 16px;"></div>
+
+        <!-- ดาวกระพริบมุมจอ ให้อารมณ์ป๊อปอาร์ตเหมือนโลโก้ -->
+        <svg class="absolute top-[18%] left-[20%] w-6 h-6 text-amber-400 animate-ping" style="animation-duration:1.8s" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.9 8.1L23 11l-8.1 2.9L12 22l-2.9-8.1L1 11l8.1-2.9L12 0z"/></svg>
+        <svg class="absolute bottom-[22%] right-[22%] w-5 h-5 text-pink-500 animate-ping" style="animation-duration:2.2s; animation-delay:.4s" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.9 8.1L23 11l-8.1 2.9L12 22l-2.9-8.1L1 11l8.1-2.9L12 0z"/></svg>
+
+        <div class="relative flex flex-col items-center gap-4">
+            <!-- วงล้อสีหมุน สไตล์สติกเกอร์ขอบดำ ให้เข้ากับโลโก้ (ชมพู/เหลือง/เขียว/ม่วง) -->
+            <div class="relative w-20 h-20 drop-shadow-[3px_3px_0_rgba(15,23,42,0.15)]">
+                <div class="absolute inset-0 rounded-full border-[3px] border-slate-900 animate-spin"
+                     style="animation-duration:0.9s; background: conic-gradient(#ec4899 0deg 90deg, #facc15 90deg 180deg, #2dd4bf 180deg 270deg, #a855f7 270deg 360deg);"></div>
+                <div class="absolute inset-[8px] rounded-full bg-white border-[3px] border-slate-900"></div>
+            </div>
+            <p class="text-sm font-black text-slate-900 tracking-wide">กำลังโหลด<span class="inline-flex">
+                <span class="animate-bounce" style="animation-delay:0ms">.</span><span class="animate-bounce" style="animation-delay:150ms">.</span><span class="animate-bounce" style="animation-delay:300ms">.</span>
+            </span></p>
+        </div>
+    </div>
 
     <!-- แถบนับถอยหลังเวลาล็อกการเลือก (ลอยด้านบนจอ, เรียลไทม์) -->
     <div id="lock-countdown-bar" class="hidden fixed top-0 left-0 right-0 z-[130] flex justify-center pointer-events-none">
@@ -3108,38 +3130,50 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             }
         };
 
+        // ซ่อนหน้าจอโหลด แล้วค่อยแสดงหน้าจริงที่พร้อมแล้ว (กันการกระพริบตอนเปิดเว็บ)
+        function hideLoadingOverlay() {
+            const overlay = document.getElementById('page-loading-overlay');
+            if (!overlay) return;
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 300);
+        }
+
         (async () => {
-            // sign-in แบบไม่ระบุตัวตนก่อนเสมอ เพื่อให้มีสิทธิ์อ่านข้อมูลจาก Firestore
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    try { await signInWithCustomToken(auth, __initial_auth_token); }
-                    catch (e) { await signInAnonymously(auth); }
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (e) { /* ignore */ }
+                // sign-in แบบไม่ระบุตัวตนก่อนเสมอ เพื่อให้มีสิทธิ์อ่านข้อมูลจาก Firestore
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        try { await signInWithCustomToken(auth, __initial_auth_token); }
+                        catch (e) { await signInAnonymously(auth); }
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (e) { /* ignore */ }
 
-            const isRealtimeView = initRealtimeViewIfNeeded();
-            if (isRealtimeView) return;
+                const isRealtimeView = initRealtimeViewIfNeeded();
+                if (isRealtimeView) return;
 
-            const isReceiptView = await initReceiptViewIfNeeded();
-            if (!isReceiptView) {
-                initApp();
-                // ตั้งค่าสถานะล็อกอินเริ่มต้น (ถ้าเคยเลือกแผนกไว้ในเซสชันนี้แล้ว ไม่ต้องให้เลือกซ้ำ)
-                if (loggedInDept) {
-                    document.getElementById('login-department').value = loggedInDept;
-                    if (document.getElementById('login-department')._syncLabel) document.getElementById('login-department')._syncLabel();
-                }
-                applyLoggedInDept();
-                applyDeptToBookingForm();
+                const isReceiptView = await initReceiptViewIfNeeded();
+                if (!isReceiptView) {
+                    initApp();
+                    // ตั้งค่าสถานะล็อกอินเริ่มต้น (ถ้าเคยเลือกแผนกไว้ในเซสชันนี้แล้ว ไม่ต้องให้เลือกซ้ำ)
+                    if (loggedInDept) {
+                        document.getElementById('login-department').value = loggedInDept;
+                        if (document.getElementById('login-department')._syncLabel) document.getElementById('login-department')._syncLabel();
+                    }
+                    applyLoggedInDept();
+                    applyDeptToBookingForm();
 
-                // ปุ่มลอย "ติดต่อแอดมิน" ให้แสดงเฉพาะลิงก์หลักเปล่าๆ (ไม่มีพารามิเตอร์ต่อท้าย เช่น ?admin, ?realtime เป็นต้น)
-                const hasNoUrlParams = window.location.search === '' && window.location.hash === '';
-                const contactFab = document.getElementById('contact-admin-fab');
-                if (contactFab && hasNoUrlParams) {
-                    contactFab.classList.remove('hidden');
-                    contactFab.classList.add('flex');
+                    // ปุ่มลอย "ติดต่อแอดมิน" ให้แสดงเฉพาะลิงก์หลักเปล่าๆ (ไม่มีพารามิเตอร์ต่อท้าย เช่น ?admin, ?realtime เป็นต้น)
+                    const hasNoUrlParams = window.location.search === '' && window.location.hash === '';
+                    const contactFab = document.getElementById('contact-admin-fab');
+                    if (contactFab && hasNoUrlParams) {
+                        contactFab.classList.remove('hidden');
+                        contactFab.classList.add('flex');
+                    }
                 }
+            } finally {
+                hideLoadingOverlay();
             }
         })();
 
