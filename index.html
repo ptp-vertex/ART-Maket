@@ -1809,6 +1809,14 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             renderDashboard();
         }
 
+        function applyDeptToBookingForm() {
+            const hidden = document.getElementById('input-department');
+            if (!hidden) return;
+            hidden.value = loggedInDept || '';
+            if (hidden._syncLabel) hidden._syncLabel();
+            hidden.dispatchEvent(new Event('change'));
+        }
+
         document.getElementById('dept-login-btn').onclick = () => {
             const dept = document.getElementById('login-department').value;
             const errText = document.getElementById('login-error-text');
@@ -1820,6 +1828,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             loggedInDept = dept;
             sessionStorage.setItem('market_logged_in_dept', dept);
             applyLoggedInDept();
+            applyDeptToBookingForm();
         };
 
         document.getElementById('dashboard-logout-btn').onclick = () => {
@@ -1828,6 +1837,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             document.getElementById('login-department').value = '';
             if (document.getElementById('login-department')._syncLabel) document.getElementById('login-department')._syncLabel();
             applyLoggedInDept();
+            applyDeptToBookingForm();
         };
 
         // สร้างตารางแดชบอร์ด: แถว = วันที่, คอลัมน์ = ล็อกที่ 1..maxPerDept ตามโควต้าที่แอดมินตั้ง
@@ -3028,6 +3038,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                     if (document.getElementById('login-department')._syncLabel) document.getElementById('login-department')._syncLabel();
                 }
                 applyLoggedInDept();
+                applyDeptToBookingForm();
 
                 // ปุ่มลอย "ติดต่อแอดมิน" ให้แสดงเฉพาะลิงก์หลักเปล่าๆ (ไม่มีพารามิเตอร์ต่อท้าย เช่น ?admin, ?realtime เป็นต้น)
                 const hasNoUrlParams = window.location.search === '' && window.location.hash === '';
