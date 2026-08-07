@@ -974,7 +974,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 const logoH = 90;
                 const logoW = logo.width * (logoH / logo.height);
                 ctx.drawImage(logo, (W - logoW) / 2, y, logoW, logoH);
-                y += logoH + 10;
+                y += logoH + 35;
             }
 
             ctx.textAlign = 'center';
@@ -1144,7 +1144,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 }
 
                 content.innerHTML = `
-                    <img src="logo2.png" class="h-16 mx-auto mb-1" onerror="this.style.display='none'">
+                    <img src="logo2.png" class="h-16 mx-auto mb-5" onerror="this.style.display='none'">
                     <h2 class="text-lg font-bold text-slate-900 mb-1">ใบยืนยันการจองพื้นที่ตลาด</h2>
                     <p class="text-sm font-bold text-slate-800 mb-0.5">ตลาดนัดอาชีพ และนิทรรศการศิลปะ</p>
                     <p class="text-xs text-slate-400 mb-4">UP-SKILL RE-SKILL · Ratchaburi Technical College</p>
