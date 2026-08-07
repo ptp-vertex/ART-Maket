@@ -2663,7 +2663,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 const originY = (y / rect.height) * 100;
 
                 // จอเล็ก (มือถือ) กรอบเตี้ยกว่า จึงลดระดับซูมลง ไม่ให้ซูมเข้าไปแน่นกว่าจอคอมฯ
-                const zoomLevel = window.innerWidth < 640 ? 1.8 : 2.5;
+                const zoomLevel = window.innerWidth < 640 ? 3.2 : 2.5;
 
                 mapScaleWrapper.style.transformOrigin = `${originX}% ${originY}%`;
                 mapScaleWrapper.style.transform = `scale(${zoomLevel})`; 
