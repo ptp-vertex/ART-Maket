@@ -453,6 +453,10 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                         + เพิ่มช่องทาง
                     </button>
                 </div>
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-1">รายละเอียดเพิ่มเติม (ไม่บังคับ แสดงใต้ชื่อช่องทางเป็นตัวเล็ก)</label>
+                    <input type="text" id="admin-contact-detail" placeholder="เช่น เวลาให้บริการ 08:00-17:00 น." class="w-full border border-slate-500 bg-slate-700 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white">
+                </div>
                 <div id="admin-contact-list" class="flex flex-col gap-2 mt-1 text-sm"></div>
             </div>
         </div>
@@ -2404,7 +2408,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                     : `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>`;
                 const textWrap = document.createElement('div');
                 textWrap.className = 'flex-1 min-w-0';
-                textWrap.innerHTML = `<div class="font-semibold text-slate-800 text-sm truncate">${ch.label || (isPhone ? 'เบอร์โทร' : 'ช่องทางติดต่อ')}</div><div class="text-slate-500 text-xs truncate">${ch.value}</div>`;
+                textWrap.innerHTML = `<div class="font-semibold text-slate-800 text-sm truncate">${ch.label || (isPhone ? 'เบอร์โทร' : 'ช่องทางติดต่อ')}</div>${ch.detail ? `<div class="text-slate-400 text-[11px] truncate">${ch.detail}</div>` : ''}<div class="text-slate-500 text-xs truncate">${ch.value}</div>`;
                 el.appendChild(iconWrap);
                 el.appendChild(textWrap);
                 if (isPhone) {
@@ -2435,7 +2439,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             contactChannels.forEach((ch, idx) => {
                 const row = document.createElement('div');
                 row.className = 'flex justify-between items-center bg-slate-800/60 border border-slate-600 rounded-lg px-3 py-2 gap-2';
-                row.innerHTML = `<span class="truncate"><span class="text-[10px] font-semibold px-1.5 py-0.5 rounded ${ch.type === 'phone' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-blue-500/20 text-blue-300'} mr-2">${ch.type === 'phone' ? 'โทร' : 'อื่นๆ'}</span>${ch.label || ''} <span class="text-slate-400 text-xs">(${ch.value})</span></span>`;
+                row.innerHTML = `<span class="truncate"><span class="text-[10px] font-semibold px-1.5 py-0.5 rounded ${ch.type === 'phone' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-blue-500/20 text-blue-300'} mr-2">${ch.type === 'phone' ? 'โทร' : 'อื่นๆ'}</span>${ch.label || ''} <span class="text-slate-400 text-xs">(${ch.value})</span>${ch.detail ? `<span class="block text-slate-500 text-[11px] mt-0.5">${ch.detail}</span>` : ''}</span>`;
                 const delBtn = document.createElement('button');
                 delBtn.className = 'flex-shrink-0 text-red-400 hover:text-red-300 text-xs font-medium px-2 py-1 hover:bg-red-500/10 rounded transition-colors';
                 delBtn.innerText = 'ลบ';
@@ -2457,16 +2461,18 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             const type = document.getElementById('admin-contact-type').value;
             const label = document.getElementById('admin-contact-label').value.trim();
             const value = document.getElementById('admin-contact-value').value.trim();
+            const detail = document.getElementById('admin-contact-detail').value.trim();
             if (!label || !value) {
                 alert('กรุณากรอกชื่อช่องทางและข้อมูลติดต่อให้ครบ'); return;
             }
-            const updated = [...contactChannels, { type, label, value }];
+            const updated = [...contactChannels, { type, label, value, detail }];
             const btn = document.getElementById('admin-add-contact-btn');
             btn.disabled = true;
             try {
                 await setDoc(adminSettingsRef, { contactChannels: updated }, { merge: true });
                 document.getElementById('admin-contact-label').value = '';
                 document.getElementById('admin-contact-value').value = '';
+                document.getElementById('admin-contact-detail').value = '';
             } catch (e) {
                 showModal('ขัดข้อง', 'ไม่สามารถเพิ่มช่องทางติดต่อได้', 'error');
             } finally {
