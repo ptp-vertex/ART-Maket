@@ -1006,7 +1006,19 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             const W = 720, padding = 40;
             const lineH = 34;
             const detailLines = 6 + dates.length + Math.ceil(lockIds.join(', ').length / 40);
-            const H = 354 + detailLines * lineH + 320 + 100; 
+
+            // วัดจำนวนบรรทัดของข้อความข้อมูลล็อคล่วงหน้า เพื่อกำหนดความสูง Canvas ให้พอดี ไม่เหลือพื้นที่ว่างเกินไป
+            const infoParts = [
+                'ล็อคขนาด 1.5x2 ม.',
+                'โต๊ะ 0.7x1.2 ม. (1 ตัว/ล็อค)',
+                'เตรียมป้ายชื่อร้าน+ผ้าปูโต๊ะเอง'
+            ];
+            const sep = '   •   ';
+            ctx.font = '12px Kanit, sans-serif';
+            const infoLineWrapped = wrapCanvasText(ctx, infoParts.join(sep), W - padding * 2, '12px Kanit, sans-serif');
+            const infoBlockExtra = 20 + 1 + 20 + infoLineWrapped.length * 18 + 12;
+
+            const H = 354 + detailLines * lineH + 320 + infoBlockExtra; 
             canvas.width = W;
             canvas.height = H;
 
@@ -1107,28 +1119,21 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             }
 
             // --- ข้อมูลล็อคจำหน่ายสินค้า (ตัวเล็ก เรียงต่อกันแนวยาวเป็นบรรทัดเดียว) ---
-            y += 28;
+            y += 20;
             ctx.strokeStyle = '#e2e8f0';
             ctx.beginPath();
             ctx.moveTo(padding, y);
             ctx.lineTo(W - padding, y);
             ctx.stroke();
-            y += 26;
+            y += 20;
 
-            const infoParts = [
-                'ล็อคขนาด 1.5x2 ม.',
-                'โต๊ะ 0.7x1.2 ม. (1 ตัว/ล็อค)',
-                'เตรียมป้ายชื่อร้าน+ผ้าปูโต๊ะเอง'
-            ];
             ctx.font = '12px Kanit, sans-serif';
             ctx.fillStyle = '#b45309';
-            const sep = '   •   ';
-            const infoLineWrapped = wrapCanvasText(ctx, infoParts.join(sep), W - padding * 2, '12px Kanit, sans-serif');
             ctx.textAlign = 'center';
             infoLineWrapped.forEach((line, i) => {
                 ctx.fillText(line, W / 2, y + i * 18);
             });
-            y += infoLineWrapped.length * 18;
+            y += infoLineWrapped.length * 18 + 12;
 
             // แปลง Canvas เป็นรูปภาพเพื่อให้กดค้างบันทึกได้บนมือถือ
             slipImg.src = canvas.toDataURL('image/png');
