@@ -589,6 +589,56 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             </div>
 
         </div>
+
+        <!-- ข้อมูลขนาดล็อคและสิ่งอำนวยความสะดวก (กราฟฟิก) -->
+        <div class="mt-4 mb-6 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-5">
+            <!-- แผนภาพขนาดล็อค -->
+            <div class="flex-shrink-0">
+                <svg width="190" height="150" viewBox="0 0 190 150" xmlns="http://www.w3.org/2000/svg">
+                    <!-- พื้นล็อค 1.5 x 2 ม. -->
+                    <rect x="30" y="15" width="130" height="97" rx="4" fill="#FEF3C7" stroke="#D97706" stroke-width="2" stroke-dasharray="5,4"/>
+                    <!-- โต๊ะ 0.7 x 1.2 ม. -->
+                    <rect x="52" y="70" width="87" height="28" rx="3" fill="#FDBA74" stroke="#C2410C" stroke-width="2"/>
+                    <text x="95" y="88" text-anchor="middle" font-size="10" font-weight="700" fill="#7C2D12" font-family="sans-serif">โต๊ะ 0.7×1.2 ม.</text>
+                    <!-- เส้นวัดความกว้าง (2 ม.) ด้านบน -->
+                    <line x1="30" y1="8" x2="160" y2="8" stroke="#92400E" stroke-width="1.2"/>
+                    <line x1="30" y1="4" x2="30" y2="12" stroke="#92400E" stroke-width="1.2"/>
+                    <line x1="160" y1="4" x2="160" y2="12" stroke="#92400E" stroke-width="1.2"/>
+                    <text x="95" y="6" text-anchor="middle" font-size="10" font-weight="700" fill="#92400E" font-family="sans-serif">2 เมตร</text>
+                    <!-- เส้นวัดความลึก (1.5 ม.) ด้านซ้าย -->
+                    <line x1="18" y1="15" x2="18" y2="112" stroke="#92400E" stroke-width="1.2"/>
+                    <line x1="14" y1="15" x2="22" y2="15" stroke="#92400E" stroke-width="1.2"/>
+                    <line x1="14" y1="112" x2="22" y2="112" stroke="#92400E" stroke-width="1.2"/>
+                    <text x="10" y="66" text-anchor="middle" font-size="10" font-weight="700" fill="#92400E" font-family="sans-serif" transform="rotate(-90 10 66)">1.5 เมตร</text>
+                    <text x="95" y="132" text-anchor="middle" font-size="10.5" font-weight="700" fill="#B45309" font-family="sans-serif">พื้นที่ล็อค 1.5 × 2 เมตร</text>
+                </svg>
+            </div>
+            <!-- รายละเอียดเป็นข้อความ -->
+            <div class="flex-1 flex flex-col gap-2.5 text-sm text-amber-900 w-full">
+                <p class="font-bold text-base text-amber-900 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    ข้อมูลล็อคจำหน่ายสินค้า
+                </p>
+                <div class="flex items-start gap-2.5">
+                    <span class="flex-shrink-0 w-7 h-7 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h16v4M4 8h16M4 8v12h16V8" /></svg>
+                    </span>
+                    <span>ล็อคขนาด <b>1.5 x 2 เมตร</b> ต่อล็อค</span>
+                </div>
+                <div class="flex items-start gap-2.5">
+                    <span class="flex-shrink-0 w-7 h-7 rounded-full bg-orange-200 text-orange-800 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 6h18M4 14h16v6H4v-6z" /></svg>
+                    </span>
+                    <span>มีโต๊ะขนาด <b>0.7 x 1.2 เมตร</b> บริการ 1 ตัว/ล็อค</span>
+                </div>
+                <div class="flex items-start gap-2.5">
+                    <span class="flex-shrink-0 w-7 h-7 rounded-full bg-rose-200 text-rose-800 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </span>
+                    <span>กรุณาเตรียม <b>ป้ายชื่อร้าน</b> และ <b>ผ้าปูโต๊ะ</b> มาเอง</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Announcement Popup (ประกาศ - แสดงเมื่อเข้าเว็บครั้งแรก) -->
@@ -956,7 +1006,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             const W = 720, padding = 40;
             const lineH = 34;
             const detailLines = 6 + dates.length + Math.ceil(lockIds.join(', ').length / 40);
-            const H = 354 + detailLines * lineH + 320; 
+            const H = 354 + detailLines * lineH + 320 + 100; 
             canvas.width = W;
             canvas.height = H;
 
@@ -1051,9 +1101,34 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 const qrImg = await loadImageFromDataUrl(qrDataUrl);
                 const qrSize = 220;
                 ctx.drawImage(qrImg, (W - qrSize) / 2, y, qrSize, qrSize);
+                y += qrSize;
             } catch (e) {
                 console.error('QR generation failed', e);
             }
+
+            // --- ข้อมูลล็อคจำหน่ายสินค้า (ตัวเล็ก เรียงต่อกันแนวยาวเป็นบรรทัดเดียว) ---
+            y += 28;
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.beginPath();
+            ctx.moveTo(padding, y);
+            ctx.lineTo(W - padding, y);
+            ctx.stroke();
+            y += 26;
+
+            const infoParts = [
+                'ล็อคขนาด 1.5x2 ม.',
+                'โต๊ะ 0.7x1.2 ม. (1 ตัว/ล็อค)',
+                'เตรียมป้ายชื่อร้าน+ผ้าปูโต๊ะเอง'
+            ];
+            ctx.font = '12px Kanit, sans-serif';
+            ctx.fillStyle = '#b45309';
+            const sep = '   •   ';
+            const infoLineWrapped = wrapCanvasText(ctx, infoParts.join(sep), W - padding * 2, '12px Kanit, sans-serif');
+            ctx.textAlign = 'center';
+            infoLineWrapped.forEach((line, i) => {
+                ctx.fillText(line, W / 2, y + i * 18);
+            });
+            y += infoLineWrapped.length * 18;
 
             // แปลง Canvas เป็นรูปภาพเพื่อให้กดค้างบันทึกได้บนมือถือ
             slipImg.src = canvas.toDataURL('image/png');
