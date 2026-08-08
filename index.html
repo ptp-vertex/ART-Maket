@@ -98,6 +98,9 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         </div>
     </div>
 
+    <!-- ระบบแจ้งเตือนบนเว็บแบบ Toast (เด้งชั่วคราวมุมบนขวา แทน alert() ของเบราว์เซอร์) -->
+    <div id="toast-container" class="fixed top-4 right-4 z-[200] flex flex-col gap-2 items-end pointer-events-none w-full max-w-xs sm:max-w-sm px-3 sm:px-0"></div>
+
     <!-- Overlay ล็อกอิน (เลือกแผนกก่อนเข้าใช้งาน) -->
     <div id="dept-login-overlay" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[120] flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-7">
@@ -1401,7 +1404,12 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 head.innerHTML += '<th class="border border-slate-200 bg-slate-100 p-2 text-center font-semibold text-slate-400 align-middle">ยังไม่มีวันที่เปิดจอง</th>';
             } else {
                 realtimeDates.forEach((dInfo, idx) => {
-                    head.innerHTML += `<th class="border border-slate-200 bg-slate-100 p-2 text-center font-semibold text-slate-600 whitespace-nowrap align-middle">การจองที่ ${idx + 1}<br><span class="font-normal text-slate-400">(${formatDateLabel(dInfo.date)})</span></th>`;
+                    const bookedCount = REALTIME_ALL_STALLS.filter(lockId => {
+                        const data = realtimeRawStalls[`${dInfo.date}__${lockId}`];
+                        return data && data.status === 'booked';
+                    }).length;
+                    const totalCount = REALTIME_ALL_STALLS.length;
+                    head.innerHTML += `<th class="border border-slate-200 bg-slate-100 p-2 text-center font-semibold text-slate-600 whitespace-nowrap align-middle">การจองที่ ${idx + 1}<br><span class="font-normal text-slate-400">(${formatDateLabel(dInfo.date)})</span><br><span class="font-normal text-emerald-600">จองแล้ว ${bookedCount}/${totalCount}</span></th>`;
                 });
             }
 
@@ -1755,8 +1763,8 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         document.getElementById('admin-add-date-btn').addEventListener('click', async () => {
             const dateVal = document.getElementById('admin-new-date-input').value;
             const labelVal = document.getElementById('admin-new-date-label').value.trim();
-            if (!dateVal) { alert('กรุณาเลือกวันที่'); return; }
-            if (availableDates.some(d => d.date === dateVal)) { alert('มีวันที่นี้อยู่แล้ว'); return; }
+            if (!dateVal) { showToast('กรุณาเลือกวันที่', 'warning'); return; }
+            if (availableDates.some(d => d.date === dateVal)) { showToast('มีวันที่นี้อยู่แล้ว', 'warning'); return; }
             const newRef = doc(eventDatesRef);
             await setDoc(newRef, { date: dateVal, label: labelVal || dateVal, createdAt: serverTimestamp() });
             document.getElementById('admin-new-date-input').value = '';
@@ -2127,7 +2135,21 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         });
 
         // ==================== ระบบล็อกอิน (เลือกแผนก) + แดชบอร์ดของฉัน ====================
-        let loggedInDept = sessionStorage.getItem('market_logged_in_dept') || '';
+        // เซสชันผู้ใช้ทั่วไป (เลือกแผนก): 30 นาที / เซสชันแอดมิน: 60 นาที
+        // ถ้ารีเฟรชหน้าเว็บภายในเวลาเซสชัน จะโหลดข้อมูลเดิม (แผนกที่เคยเลือก / สถานะล็อกอินแอดมิน) กลับมาให้อัตโนมัติ
+        const DEPT_SESSION_MS = 30 * 60 * 1000;
+        const ADMIN_SESSION_MS = 60 * 60 * 1000;
+
+        function isDeptSessionValid() {
+            const loginAt = Number(sessionStorage.getItem('market_logged_in_dept_at') || 0);
+            return loginAt > 0 && (Date.now() - loginAt) < DEPT_SESSION_MS;
+        }
+
+        let loggedInDept = isDeptSessionValid() ? (sessionStorage.getItem('market_logged_in_dept') || '') : '';
+        if (!loggedInDept) {
+            sessionStorage.removeItem('market_logged_in_dept');
+            sessionStorage.removeItem('market_logged_in_dept_at');
+        }
 
         initSearchableDropdown({
             wrapId: 'login-department-wrap',
@@ -2174,6 +2196,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             errText.classList.add('hidden');
             loggedInDept = dept;
             sessionStorage.setItem('market_logged_in_dept', dept);
+            sessionStorage.setItem('market_logged_in_dept_at', String(Date.now()));
             applyLoggedInDept();
             applyDeptToBookingForm();
         };
@@ -2181,6 +2204,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         document.getElementById('dashboard-logout-btn').onclick = () => {
             loggedInDept = '';
             sessionStorage.removeItem('market_logged_in_dept');
+            sessionStorage.removeItem('market_logged_in_dept_at');
             document.getElementById('login-department').value = '';
             if (document.getElementById('login-department')._syncLabel) document.getElementById('login-department')._syncLabel();
             applyLoggedInDept();
@@ -2481,6 +2505,40 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         };
 
         // --- UI Modal Logic ---
+        // แจ้งเตือนบนเว็บแบบ Toast (เด้งชั่วคราว, ไม่ใช่การขอความจากระบบ/เบราว์เซอร์)
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toast-container');
+            if (!container) { console.warn(message); return; }
+
+            const palette = {
+                success: { bg: 'bg-emerald-600', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />' },
+                warning: { bg: 'bg-amber-500', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />' },
+                error: { bg: 'bg-red-600', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />' }
+            };
+            const style = palette[type] || palette.error;
+
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto ${style.bg} text-white text-sm rounded-xl shadow-2xl px-4 py-3 flex items-start gap-2.5 w-full transform transition-all duration-300 opacity-0 translate-x-4`;
+            toast.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">${style.icon}</svg>
+                <span class="flex-1 leading-snug whitespace-pre-line">${message}</span>
+                <button class="flex-shrink-0 opacity-70 hover:opacity-100 transition-opacity" aria-label="ปิด">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>`;
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('opacity-0', 'translate-x-4');
+            });
+
+            const dismiss = () => {
+                toast.classList.add('opacity-0', 'translate-x-4');
+                setTimeout(() => toast.remove(), 300);
+            };
+            toast.querySelector('button').onclick = dismiss;
+            setTimeout(dismiss, 4500);
+        }
+
         function showModal(title, message, type = 'success') {
             modalTitle.innerText = title;
             modalMessage.innerText = message;
@@ -2613,7 +2671,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             const value = document.getElementById('admin-contact-value').value.trim();
             const detail = document.getElementById('admin-contact-detail').value.trim();
             if (!label || !value) {
-                alert('กรุณากรอกชื่อช่องทางและข้อมูลติดต่อให้ครบ'); return;
+                showToast('กรุณากรอกชื่อช่องทางและข้อมูลติดต่อให้ครบ', 'warning'); return;
             }
             const updated = [...contactChannels, { type, label, value, detail }];
             const btn = document.getElementById('admin-add-contact-btn');
@@ -2784,7 +2842,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             const inputPhone = document.getElementById('verify-phone').value.trim();
             
             if (!inputName || !inputPhone) {
-                alert('กรุณากรอกชื่อและเบอร์โทรเดิมเพื่อตรวจสอบ'); return;
+                showToast('กรุณากรอกชื่อและเบอร์โทรเดิมเพื่อตรวจสอบ', 'warning'); return;
             }
             
             const normInputName = normalizeName(inputName);
@@ -2802,7 +2860,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 document.getElementById('edit-new-name').value = currentEditStallData.contactName;
                 document.getElementById('edit-new-phone').value = currentEditStallData.phone;
             } else {
-                alert('ข้อมูลไม่ตรงกัน\n\nโปรดตรวจสอบชื่อ และเบอร์โทรของคนที่จองล็อคนี้อีกครั้ง');
+                showToast('ข้อมูลไม่ตรงกัน\n\nโปรดตรวจสอบชื่อ และเบอร์โทรของคนที่จองล็อคนี้อีกครั้ง', 'error');
             }
         };
 
@@ -2814,10 +2872,10 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             const phoneDigits = phone.replace(/\D/g, '');
             
             if (!shop || !product || !name || !phone) {
-                alert('กรุณากรอกข้อมูลให้ครบทุกช่อง'); return;
+                showToast('กรุณากรอกข้อมูลให้ครบทุกช่อง', 'warning'); return;
             }
             if (phoneDigits.length !== 10) {
-                alert('กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก'); return;
+                showToast('กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก', 'warning'); return;
             }
             
             try {
@@ -2834,7 +2892,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 closeEditModal();
                 showModal('บันทึกสำเร็จ', `แก้ไขข้อมูลล็อค ${currentEditStallId} เรียบร้อยแล้ว`, 'success');
             } catch (err) {
-                alert('ขัดข้อง: ไม่สามารถบันทึกข้อมูลได้');
+                showToast('ขัดข้อง: ไม่สามารถบันทึกข้อมูลได้', 'error');
             }
         };
 
@@ -2848,7 +2906,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                     closeEditModal();
                     showModal('คืนพื้นที่สำเร็จ', `ล็อค ${currentEditStallId} กลับมาว่างอีกครั้ง`, 'success');
                 } catch (err) {
-                    alert('เกิดข้อผิดพลาดในการยกเลิกจอง');
+                    showToast('เกิดข้อผิดพลาดในการยกเลิกจอง', 'error');
                 }
             }
         };
@@ -2959,10 +3017,26 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             }
         }
 
+        function isAdminSessionValid() {
+            const loginAt = Number(sessionStorage.getItem('market_admin_authed_at') || 0);
+            return loginAt > 0 && (Date.now() - loginAt) < ADMIN_SESSION_MS;
+        }
+
         function checkAdminMode() {
             if (window.location.href.includes('admin') || window.location.hash.includes('admin')) {
-                adminLoginModal.classList.remove('hidden');
-                adminLoginModal.classList.add('flex');
+                if (isAdminSessionValid()) {
+                    // รีเฟรชหน้าเว็บภายในเวลาเซสชัน (60 นาที) -> เข้าสู่ระบบแอดมินให้อัตโนมัติ ไม่ต้องกรอกรหัสผ่านซ้ำ
+                    isAdminAuthenticated = true;
+                    renderMap();
+                    checkSiteAccess();
+                    document.getElementById('admin-panel').classList.remove('hidden');
+                    document.getElementById('admin-day-dashboard').classList.remove('hidden');
+                    reorderForAdminView();
+                } else {
+                    sessionStorage.removeItem('market_admin_authed_at');
+                    adminLoginModal.classList.remove('hidden');
+                    adminLoginModal.classList.add('flex');
+                }
             }
         }
 
@@ -2995,6 +3069,14 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             adminLoginModal.classList.add('flex');
         };
 
+        // กดเอ็นเทอร์ในช่องรหัสผ่านแอดมิน = เข้าสู่ระบบทันที
+        adminPwdInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('admin-login-btn').click();
+            }
+        });
+
         document.getElementById('admin-login-btn').onclick = async () => {
             const inputPass = adminPwdInput.value;
             if(!inputPass) return;
@@ -3008,6 +3090,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 adminLoginModal.classList.add('hidden');
                 adminLoginModal.classList.remove('flex');
                 isAdminAuthenticated = true;
+                sessionStorage.setItem('market_admin_authed_at', String(Date.now())); // เริ่มเซสชันแอดมิน 60 นาที
                 renderMap(); // อัปเดตผังใหม่เพื่อให้แอดมินกดดูข้อมูลได้
                 checkSiteAccess(); // แอดมินไม่ถูกบล็อกแม้เว็บจะปิดอยู่
 
@@ -3021,14 +3104,40 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                     reorderForAdminView();
                 }
             } else {
-                alert('รหัสผ่านไม่ถูกต้อง');
+                showToast('รหัสผ่านไม่ถูกต้อง', 'error');
             }
         };
+
+        // ตรวจสอบเซสชันเป็นระยะ: หมดเวลาแล้วให้ออกจากระบบอัตโนมัติพร้อมแจ้งเตือนบนเว็บ
+        setInterval(() => {
+            if (loggedInDept && !isDeptSessionValid()) {
+                loggedInDept = '';
+                sessionStorage.removeItem('market_logged_in_dept');
+                sessionStorage.removeItem('market_logged_in_dept_at');
+                const deptField = document.getElementById('login-department');
+                if (deptField) {
+                    deptField.value = '';
+                    if (deptField._syncLabel) deptField._syncLabel();
+                }
+                applyLoggedInDept();
+                applyDeptToBookingForm();
+                showToast('เซสชันของท่านหมดอายุ (30 นาที) กรุณาเลือกแผนกเพื่อเข้าสู่ระบบอีกครั้ง', 'warning');
+            }
+            if (isAdminAuthenticated && !isAdminSessionValid()) {
+                isAdminAuthenticated = false;
+                sessionStorage.removeItem('market_admin_authed_at');
+                document.getElementById('admin-panel').classList.add('hidden');
+                document.getElementById('admin-day-dashboard').classList.add('hidden');
+                renderMap();
+                checkSiteAccess();
+                showToast('เซสชันแอดมินหมดอายุ (60 นาที) กรุณาเข้าสู่ระบบใหม่', 'warning');
+            }
+        }, 30000);
 
         document.getElementById('admin-save-pwd-btn').onclick = async () => {
             const newPass = adminNewPwdInput.value;
             if (newPass.length < 6) {
-                alert('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร'); return;
+                showToast('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร', 'warning'); return;
             }
             try {
                 await setDoc(adminSettingsRef, { password: newPass }, { merge: true });
@@ -3039,7 +3148,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 reorderForAdminView();
                 showModal('สำเร็จ', 'เปลี่ยนรหัสผ่านแอดมินเรียบร้อยแล้ว', 'success');
             } catch (e) {
-                alert('ไม่สามารถบันทึกรหัสผ่านได้');
+                showToast('ไม่สามารถบันทึกรหัสผ่านได้', 'error');
             }
         };
 
@@ -3155,7 +3264,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 preview.classList.remove('hidden');
             } catch (err) {
                 statusEl.innerText = '';
-                alert('ไม่สามารถประมวลผลรูปภาพได้ ลองใช้รูปอื่น');
+                showToast('ไม่สามารถประมวลผลรูปภาพได้ ลองใช้รูปอื่น', 'error');
             }
         });
 
@@ -3179,7 +3288,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             const hasExistingImage = currentAnnouncementData && currentAnnouncementData.image;
 
             if (!text && !pendingAnnouncementImage && !hasExistingImage) {
-                alert('กรุณากรอกข้อความ หรือแนบรูปภาพอย่างน้อย 1 อย่าง');
+                showToast('กรุณากรอกข้อความ หรือแนบรูปภาพอย่างน้อย 1 อย่าง', 'warning');
                 return;
             }
 
@@ -3232,7 +3341,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         document.getElementById('admin-save-quota-btn').onclick = async () => {
             const val = parseInt(document.getElementById('admin-max-dept-input').value, 10);
             if (!val || val < 1) {
-                alert('กรุณากรอกจำนวนล็อคที่ถูกต้อง (อย่างน้อย 1 ล็อค)'); return;
+                showToast('กรุณากรอกจำนวนล็อคที่ถูกต้อง (อย่างน้อย 1 ล็อค)', 'warning'); return;
             }
             try {
                 await setDoc(adminSettingsRef, { maxPerDept: val }, { merge: true });
@@ -3246,7 +3355,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         document.getElementById('admin-save-lock-duration-btn').onclick = async () => {
             const val = parseInt(document.getElementById('admin-lock-duration-input').value, 10);
             if (!val || val < 1) {
-                alert('กรุณากรอกจำนวนนาทีที่ถูกต้อง (อย่างน้อย 1 นาที)'); return;
+                showToast('กรุณากรอกจำนวนนาทีที่ถูกต้อง (อย่างน้อย 1 นาที)', 'warning'); return;
             }
             try {
                 await setDoc(adminSettingsRef, { lockDurationMinutes: val }, { merge: true });
@@ -3260,7 +3369,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         document.getElementById('admin-delete-dept-btn').onclick = async () => {
             const dept = document.getElementById('admin-dept-manage').value;
             if (!dept) {
-                alert('กรุณาเลือกแผนกที่ต้องการลบข้อมูล'); return;
+                showToast('กรุณาเลือกแผนกที่ต้องการลบข้อมูล', 'warning'); return;
             }
             
             // รวมล็อกที่แผนกนี้จองอยู่ พร้อมวันที่ที่ต้องลบ (รองรับล็อกที่มีหลายแผนกจองคนละวัน)
@@ -3277,7 +3386,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             });
 
             if (stallsToDelete.length === 0) {
-                alert(`ไม่มีข้อมูลการจองของ "${dept}" ในระบบ`); return;
+                showToast(`ไม่มีข้อมูลการจองของ "${dept}" ในระบบ`, 'warning'); return;
             }
 
             if (confirm(`ยืนยันการลบข้อมูล\nคุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลการจองของ "${dept}" ทั้งหมด ${stallsToDelete.length} ล็อค?`)) {
