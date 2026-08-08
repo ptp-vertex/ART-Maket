@@ -996,18 +996,28 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             statusText.innerText = 'กำลังสร้างรูปภาพ...';
             await new Promise(r => setTimeout(r, 1500));
 
-            // ขั้นตอนที่ 2
+            // ขั้นตอนที่ 2: รอให้ฟอนต์ Kanit โหลดครบก่อนวัด/วาดข้อความ เพื่อให้ตัวหนังสือคมชัดและตัดบรรทัดถูกต้อง (ไม่ใช้ฟอนต์สำรองของเบราว์เซอร์)
             statusText.innerText = 'กำลังสร้างรูปภาพ... (ปรับความชัด)';
-            await new Promise(r => setTimeout(r, 1500));
+            try {
+                await Promise.all([
+                    document.fonts.load('16px Kanit'),
+                    document.fonts.load('bold 18px Kanit'),
+                    document.fonts.load('bold 30px Kanit'),
+                    document.fonts.load('12px Kanit')
+                ]);
+                await document.fonts.ready;
+            } catch (e) { /* เบราว์เซอร์บางตัวอาจไม่รองรับ FontFace API เต็มรูปแบบ ข้ามไปได้ */ }
+            await new Promise(r => setTimeout(r, 700));
 
             // ขั้นตอนสุดท้าย: สร้างจริง
             statusText.innerText = 'กำลังประมวลผลขั้นตอนสุดท้าย...';
 
             const W = 720, padding = 40;
-            const lineH = 34;
-            const detailLines = 6 + dates.length + Math.ceil(lockIds.join(', ').length / 40);
+            // เรนเดอร์ที่ความละเอียดสูงกว่าปกติ (supersampling) แล้วค่อยย่อแสดงผล เพื่อให้ตัวหนังสือและโลโก้คมชัดที่สุด
+            // โดยเฉพาะเวลาบันทึกภาพไปเปิด/ซูมดูบนมือถือ (จอมือถือความละเอียดสูงกว่าที่ canvas ขนาดปกติจะให้ภาพคมได้)
+            const RENDER_SCALE = 3;
 
-            // วัดจำนวนบรรทัดของข้อความข้อมูลล็อคล่วงหน้า เพื่อกำหนดความสูง Canvas ให้พอดี ไม่เหลือพื้นที่ว่างเกินไป
+            // เตรียมข้อความ "ข้อมูลล็อคจำหน่ายสินค้า" ล่วงหน้า (วัดการตัดบรรทัด)
             const infoParts = [
                 'ล็อคขนาด 1.5x2 ม.',
                 'โต๊ะ 0.7x1.2 ม. (1 ตัว/ล็อค)',
@@ -1016,17 +1026,154 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             const sep = '   •   ';
             ctx.font = '12px Kanit, sans-serif';
             const infoLineWrapped = wrapCanvasText(ctx, infoParts.join(sep), W - padding * 2, '12px Kanit, sans-serif');
-            const infoBlockExtra = 20 + 1 + 20 + infoLineWrapped.length * 18 + 12;
 
-            const H = 354 + detailLines * lineH + 320 + infoBlockExtra; 
-            canvas.width = W;
-            canvas.height = H;
+            // โหลดโลโก้ และสร้าง QR Code ให้เสร็จล่วงหน้า (ก่อนคำนวณความสูงที่แน่นอน และก่อนวาดจริง)
+            const logo = await loadImageSafe('logo2.png');
+            let qrImg = null;
+            try {
+                const receiptUrl = buildReceiptUrl(lockIds, dates);
+                const qrDataUrl = await QRCode.toDataURL(receiptUrl, { width: 260, margin: 1 });
+                qrImg = await loadImageFromDataUrl(qrDataUrl);
+            } catch (e) {
+                console.error('QR generation failed', e);
+            }
+
+            const rows = [
+                ['รหัสล็อกที่จอง', lockIds.join(', ')],
+                ['วันที่จอง', dates.map(formatDateLabel).join(', ')],
+                ['แผนก', dept],
+                ['ชื่อร้าน', shop],
+                ['สินค้าที่ขาย', product],
+                ['ผู้ติดต่อ', `${name} (${phone})`]
+            ];
+            const qrSize = 220;
+
+            // จัดวางเนื้อหาทั้งหมดตามลำดับ (measureOnly=true = คำนวณตำแหน่ง y เท่านั้น ไม่วาดจริง)
+            // ใช้หาความสูงของเนื้อหาที่แท้จริง เพื่อกำหนดขนาด Canvas ให้พอดีเป๊ะ ไม่เหลือพื้นที่ว่างด้านล่างอีกต่อไป
+            function layoutContent(measureOnly) {
+                let y = 30;
+
+                if (logo) {
+                    const logoH = 90;
+                    const logoW = logo.width * (logoH / logo.height);
+                    if (!measureOnly) ctx.drawImage(logo, (W - logoW) / 2, y, logoW, logoH);
+                    y += logoH + 35;
+                } else {
+                    // กรณีโลโก้ไม่ขึ้น ให้ดันข้อความลงกรณีไม่มีโลโก้ดันข้อความลงกรณีมากขึ้นหน่อย
+                    y += 40;
+                }
+
+                if (!measureOnly) {
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = '#0f172a';
+                    ctx.font = 'bold 30px Kanit, sans-serif';
+                    ctx.fillText('ใบยืนยันการจองพื้นที่ตลาด', W / 2, y);
+                }
+                y += 32;
+
+                if (!measureOnly) {
+                    ctx.font = 'bold 18px Kanit, sans-serif';
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillText('ตลาดนัดอาชีพ และนิทรรศการศิลปะ', W / 2, y);
+                }
+                y += 24;
+
+                if (!measureOnly) {
+                    ctx.font = '16px Kanit, sans-serif';
+                    ctx.fillStyle = '#64748b';
+                    ctx.fillText('UP-SKILL RE-SKILL · Ratchaburi Technical College', W / 2, y);
+                }
+                y += 30;
+
+                if (!measureOnly) {
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.beginPath();
+                    ctx.moveTo(padding, y);
+                    ctx.lineTo(W - padding, y);
+                    ctx.stroke();
+                }
+                y += 40;
+
+                if (!measureOnly) ctx.textAlign = 'left';
+                rows.forEach(([label, value]) => {
+                    ctx.font = '16px Kanit, sans-serif'; // ต้อง set font ก่อนวัด/วาดทุกครั้ง ให้ measureText ตรงกับที่วาดจริง
+                    if (!measureOnly) {
+                        ctx.fillStyle = '#64748b';
+                        ctx.fillText(label, padding, y);
+                    }
+                    ctx.font = 'bold 18px Kanit, sans-serif';
+                    const wrapped = wrapCanvasText(ctx, value, W - padding * 2, 'bold 18px Kanit, sans-serif');
+                    if (!measureOnly) {
+                        ctx.fillStyle = '#0f172a';
+                        wrapped.forEach((line, i) => ctx.fillText(line, padding, y + 24 + i * 24));
+                    }
+                    y += 24 + wrapped.length * 24 + 12;
+                });
+
+                y += 10;
+                if (!measureOnly) {
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.beginPath();
+                    ctx.moveTo(padding, y);
+                    ctx.lineTo(W - padding, y);
+                    ctx.stroke();
+                }
+                y += 30;
+
+                if (!measureOnly) {
+                    ctx.textAlign = 'center';
+                    ctx.font = '14px Kanit, sans-serif';
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.fillText('สแกน QR Code ด้านล่างเพื่อตรวจสอบข้อมูลการจองนี้', W / 2, y);
+                }
+                y += 20;
+
+                const qrY = y;
+                if (!measureOnly && qrImg) {
+                    ctx.drawImage(qrImg, (W - qrSize) / 2, qrY, qrSize, qrSize);
+                }
+                y += qrSize;
+
+                // --- ข้อมูลล็อคจำหน่ายสินค้า (ตัวเล็ก เรียงต่อกันแนวยาวเป็นบรรทัดเดียว) ---
+                y += 20;
+                if (!measureOnly) {
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.beginPath();
+                    ctx.moveTo(padding, y);
+                    ctx.lineTo(W - padding, y);
+                    ctx.stroke();
+                }
+                y += 20;
+
+                if (!measureOnly) {
+                    ctx.font = '12px Kanit, sans-serif';
+                    ctx.fillStyle = '#b45309';
+                    ctx.textAlign = 'center';
+                    infoLineWrapped.forEach((line, i) => {
+                        ctx.fillText(line, W / 2, y + i * 18);
+                    });
+                }
+                y += infoLineWrapped.length * 18 + 12;
+
+                return y;
+            }
+
+            // รอบที่ 1: คำนวณความสูงเนื้อหาที่แท้จริงทั้งหมด (ไม่วาดลง canvas) เพื่อกำหนดขนาด canvas ให้พอดีเป๊ะกับเนื้อหา
+            const finalH = Math.ceil(layoutContent(true)) + 10;
+
+            // ตั้งค่าขนาด Canvas จริง: คูณด้วย RENDER_SCALE เพื่อความคมชัดสูงสุด (supersampling)
+            // แล้ว scale บริบทของ canvas กลับ เพื่อให้พิกัดที่ใช้วาดทั้งหมดยังคงอ้างอิงหน่วยตรรกะเดิม (W x finalH)
+            canvas.width = W * RENDER_SCALE;
+            canvas.height = finalH * RENDER_SCALE;
+            ctx.scale(RENDER_SCALE, RENDER_SCALE);
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
 
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, W, H);
-            
+            ctx.fillRect(0, 0, W, finalH);
+
             // วาดลายกราฟฟิกพื้นหลัง
-            drawBackgroundPattern(ctx, W, H);
+            drawBackgroundPattern(ctx, W, finalH);
 
             const grad = ctx.createLinearGradient(0, 0, W, 0);
             grad.addColorStop(0, '#e6127f');
@@ -1036,104 +1183,8 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, W, 12);
 
-            let y = 30;
-            let hasLogo = false;
-
-            const logo = await loadImageSafe('logo2.png');
-            if (logo) {
-                const logoH = 90;
-                const logoW = logo.width * (logoH / logo.height);
-                ctx.drawImage(logo, (W - logoW) / 2, y, logoW, logoH);
-                y += logoH + 35;
-                hasLogo = true;
-            } else {
-                // กรณีโลโก้ไม่ขึ้น ให้ดันข้อความลงกรณีไม่มีโลโก้ดันข้อความลงกรณีมากขึ้นหน่อย
-                y += 40;
-            }
-
-            ctx.textAlign = 'center';
-            ctx.fillStyle = '#0f172a';
-            ctx.font = 'bold 30px Kanit, sans-serif';
-            ctx.fillText('ใบยืนยันการจองพื้นที่ตลาด', W / 2, y);
-            y += 32;
-            ctx.font = 'bold 18px Kanit, sans-serif';
-            ctx.fillStyle = '#0f172a';
-            ctx.fillText('ตลาดนัดอาชีพ และนิทรรศการศิลปะ', W / 2, y);
-            y += 24;
-            ctx.font = '16px Kanit, sans-serif';
-            ctx.fillStyle = '#64748b';
-            ctx.fillText('UP-SKILL RE-SKILL · Ratchaburi Technical College', W / 2, y);
-            y += 30;
-
-            ctx.strokeStyle = '#e2e8f0';
-            ctx.beginPath();
-            ctx.moveTo(padding, y);
-            ctx.lineTo(W - padding, y);
-            ctx.stroke();
-            y += 40;
-
-            ctx.textAlign = 'left';
-            const drawRow = (label, value) => {
-                ctx.font = '16px Kanit, sans-serif';
-                ctx.fillStyle = '#64748b';
-                ctx.fillText(label, padding, y);
-                ctx.font = 'bold 18px Kanit, sans-serif';
-                ctx.fillStyle = '#0f172a';
-                const wrapped = wrapCanvasText(ctx, value, W - padding * 2, 'bold 18px Kanit, sans-serif');
-                wrapped.forEach((line, i) => {
-                    ctx.fillText(line, padding, y + 24 + i * 24);
-                });
-                y += 24 + wrapped.length * 24 + 12;
-            };
-
-            drawRow('รหัสล็อกที่จอง', lockIds.join(', '));
-            drawRow('วันที่จอง', dates.map(formatDateLabel).join(', '));
-            drawRow('แผนก', dept);
-            drawRow('ชื่อร้าน', shop);
-            drawRow('สินค้าที่ขาย', product);
-            drawRow('ผู้ติดต่อ', `${name} (${phone})`);
-
-            y += 10;
-            ctx.strokeStyle = '#e2e8f0';
-            ctx.beginPath();
-            ctx.moveTo(padding, y);
-            ctx.lineTo(W - padding, y);
-            ctx.stroke();
-            y += 30;
-
-            ctx.textAlign = 'center';
-            ctx.font = '14px Kanit, sans-serif';
-            ctx.fillStyle = '#94a3b8';
-            ctx.fillText('สแกน QR Code ด้านล่างเพื่อตรวจสอบข้อมูลการจองนี้', W / 2, y);
-            y += 20;
-
-            try {
-                const receiptUrl = buildReceiptUrl(lockIds, dates);
-                const qrDataUrl = await QRCode.toDataURL(receiptUrl, { width: 260, margin: 1 });
-                const qrImg = await loadImageFromDataUrl(qrDataUrl);
-                const qrSize = 220;
-                ctx.drawImage(qrImg, (W - qrSize) / 2, y, qrSize, qrSize);
-                y += qrSize;
-            } catch (e) {
-                console.error('QR generation failed', e);
-            }
-
-            // --- ข้อมูลล็อคจำหน่ายสินค้า (ตัวเล็ก เรียงต่อกันแนวยาวเป็นบรรทัดเดียว) ---
-            y += 20;
-            ctx.strokeStyle = '#e2e8f0';
-            ctx.beginPath();
-            ctx.moveTo(padding, y);
-            ctx.lineTo(W - padding, y);
-            ctx.stroke();
-            y += 20;
-
-            ctx.font = '12px Kanit, sans-serif';
-            ctx.fillStyle = '#b45309';
-            ctx.textAlign = 'center';
-            infoLineWrapped.forEach((line, i) => {
-                ctx.fillText(line, W / 2, y + i * 18);
-            });
-            y += infoLineWrapped.length * 18 + 12;
+            // รอบที่ 2: วาดเนื้อหาจริงทั้งหมดลงบน canvas ความละเอียดสูง คมชัด และสูงพอดีกับเนื้อหา ไม่เหลือพื้นที่ว่างด้านล่าง
+            layoutContent(false);
 
             // แปลง Canvas เป็นรูปภาพเพื่อให้กดค้างบันทึกได้บนมือถือ
             slipImg.src = canvas.toDataURL('image/png');
