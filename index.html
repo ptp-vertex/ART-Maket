@@ -244,7 +244,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
     </div>
 
     <!-- หน้าใบยืนยันการจอง (แสดงเมื่อสแกน QR Code จากใบยืนยัน) -->
-    <div id="receipt-view-page" class="hidden min-h-screen items-center justify-center p-4 bg-slate-100">
+    <div id="receipt-view-page" class="hidden h-screen overflow-hidden items-center justify-center p-4 bg-slate-100">
         <div id="receipt-view-content" class="bg-white rounded-2xl shadow-lg max-w-md w-full p-6 text-center">
             <div class="text-slate-400 text-sm py-10">กำลังโหลดข้อมูล...</div>
         </div>
@@ -1427,24 +1427,14 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             const loginOverlay = document.getElementById('dept-login-overlay');
             if (loginOverlay) loginOverlay.style.display = 'none';
 
+            // ล็อกหน้าไม่ให้เลื่อน เพราะเนื้อหาใบยืนยันไม่ยาวเกินจอ
+            document.documentElement.classList.add('overflow-hidden');
+            document.body.classList.add('overflow-hidden');
+
             document.getElementById('main-app-wrapper').classList.add('hidden');
             const page = document.getElementById('receipt-view-page');
             page.classList.remove('hidden');
             page.classList.add('flex');
-
-            // แสดงปุ่มลอย "ติดต่อแอดมิน" ในหน้านี้ด้วย เผื่อผู้ใช้ต้องการสอบถาม/แจ้งแก้ไขข้อมูลการจอง
-            try {
-                const adminSnap = await getDoc(adminSettingsRef);
-                if (adminSnap.exists()) {
-                    contactChannels = Array.isArray(adminSnap.data().contactChannels) ? adminSnap.data().contactChannels : [];
-                    renderContactChannels();
-                }
-            } catch (e) { /* ไม่มีช่องทางติดต่อก็ไม่เป็นไร ป็อปอัพจะแจ้งว่ายังไม่มีการตั้งค่า */ }
-            const contactFab = document.getElementById('contact-admin-fab');
-            if (contactFab) {
-                contactFab.classList.remove('hidden');
-                contactFab.classList.add('flex');
-            }
 
             const lockIds = bookingParam.split(',').filter(Boolean);
             const dates = datesParam.split(',').filter(Boolean);
