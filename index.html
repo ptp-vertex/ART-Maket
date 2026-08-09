@@ -424,7 +424,6 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 <div>
                     <h2 class="text-lg font-bold flex items-center gap-3">
                         โหมดผู้ดูแลระบบ (Admin)
-                        <span id="admin-stats-badge" class="bg-blue-600 text-white text-[11px] px-2.5 py-1 rounded-full shadow-sm font-medium">จองแล้ว 0/50 ล็อค</span>
                     </h2>
                     <p class="text-slate-300 text-xs mt-1">แก้ไขข้อมูลรายล็อค, ลบข้อมูลรายแผนก และดาวน์โหลดรายงาน</p>
                 </div>
@@ -2031,8 +2030,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         }
 
         function updateAdminStats() {
-            const bookedCount = Object.values(globalStallsData).filter(d => d.status === 'booked' || d.status === 'partial').length;
-            document.getElementById('admin-stats-badge').innerText = `จองแล้ว ${bookedCount}/50 ล็อค`;
+            // ป้าย "จองแล้ว X/50 ล็อค" ถูกเอาออกจาก UI แล้วตามคำขอ (เหลือฟังก์ชันไว้เผื่อใช้คำนวณที่อื่นในอนาคต)
         }
 
         // --- Render Map ---
@@ -2284,8 +2282,9 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             placeholder: '-- เลือกแผนก --'
         });
 
-        // ถ้าลิงก์มี ?admin (เช่น ?admin หรือ ?admin=1) จะไม่บังคับให้เลือกแผนกก่อนเข้าใช้งาน
-        const isAdminUrlAccess = new URLSearchParams(window.location.search).has('admin');
+        // ถ้าลิงก์มีพารามิเตอร์ต่อท้าย (มี "?" เช่น ?admin, ?booking=..., ?dates=... ฯลฯ ไม่ว่าจะเป็นอะไรก็ตาม)
+        // ให้ถือว่าเป็นการเข้าใช้งานแบบมีบริบทอยู่แล้ว จึงไม่บังคับให้เลือกแผนกก่อนเข้าใช้งาน
+        const hasUrlQueryParams = window.location.search !== '';
 
         function showLoginOverlay(show) {
             const overlay = document.getElementById('dept-login-overlay');
@@ -2294,7 +2293,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
 
         function applyLoggedInDept() {
             document.getElementById('dashboard-dept-name').innerText = loggedInDept || '-';
-            showLoginOverlay(!loggedInDept && !isAdminUrlAccess);
+            showLoginOverlay(!loggedInDept && !hasUrlQueryParams);
             renderDashboard();
         }
 
