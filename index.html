@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -571,6 +572,19 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 </div>
                 <div id="admin-contact-list" class="flex flex-col gap-2 mt-1 text-sm"></div>
             </div>
+
+            <!-- ประวัติการใช้งานทั้งหมด (แบ็คอัพ - ไม่มีการลบข้อมูลส่วนนี้เด็ดขาด) -->
+            <div class="bg-slate-900/40 border border-slate-600 rounded-xl p-4 flex flex-col gap-3">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <h3 class="font-semibold flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 01-2-2V4a2 2 0 012-2h14a2 2 0 012 2v2a2 2 0 01-2 2M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+                        ประวัติการใช้งานทั้งหมด (แบ็คอัพ ไม่มีการลบ)
+                    </h3>
+                    <button id="toggle-action-log-btn" type="button" class="text-xs font-medium text-blue-300 hover:text-blue-200 border border-blue-500/40 hover:bg-blue-500/10 rounded-lg px-3 py-1.5 transition-colors whitespace-nowrap">แสดงประวัติ</button>
+                </div>
+                <p class="text-[11px] text-slate-400 -mt-1">บันทึกทุกการกระทำของผู้ใช้ (เพิ่ม/แก้ไข/ลบ) แยกตามวันที่ทำรายการ และแยกตามแผนกภายในแต่ละวัน ข้อมูลส่วนนี้จะไม่ถูกลบทิ้ง</p>
+                <div id="action-log-wrapper" class="hidden flex-col gap-4 max-h-[32rem] overflow-y-auto pr-1"></div>
+            </div>
         </div>
 
         <div id="floor-plan-row" class="flex flex-col lg:flex-row gap-6">
@@ -950,7 +964,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, collection, getDocs, deleteDoc, serverTimestamp, updateDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, getDocs, deleteDoc, serverTimestamp, updateDoc, getDoc, query, orderBy, addDoc, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase Config ---
         const firebaseConfig = {
@@ -1593,6 +1607,35 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         const announcementRef = doc(db, 'artifacts', artifactAppId, 'public', 'announcement');
         const eventDatesRef = collection(db, 'artifacts', artifactAppId, 'public', 'data', 'eventDates');
 
+        // --- ระบบแบ็คอัพ/ประวัติการใช้งาน (Audit Log) ---
+        // เก็บทุกการกระทำของผู้ใช้แยกต่างหาก ไม่มีการลบทิ้งเด็ดขาด (append-only)
+        const actionLogsRef = collection(db, 'artifacts', artifactAppId, 'public', 'data', 'actionLogs');
+
+        // คืนค่าวันที่ปัจจุบัน (โซนเวลาไทย) รูปแบบ YYYY-MM-DD ใช้เป็น key สำหรับจัดกลุ่มบันทึกตามวัน
+        function todayKeyBangkok() {
+            return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
+        }
+
+        // บันทึกการกระทำของผู้ใช้ลงประวัติ (best-effort, ไม่บล็อกการทำงานหลักหากบันทึกไม่สำเร็จ)
+        // action: รหัสการกระทำ, actionLabel: ข้อความอธิบายภาษาไทย, department: แผนกที่เกี่ยวข้อง, detail: รายละเอียดเพิ่มเติม
+        async function logAction(action, actionLabel, department, detail) {
+            try {
+                await addDoc(actionLogsRef, {
+                    action: action || '-',
+                    actionLabel: actionLabel || '-',
+                    department: department || (isAdminAuthenticated ? 'แอดมิน' : '-'),
+                    detail: detail || '',
+                    dayKey: todayKeyBangkok(),
+                    actorUid: currentUser ? currentUser.uid : null,
+                    isAdmin: !!isAdminAuthenticated,
+                    createdAt: serverTimestamp(),
+                    clientTime: new Date().toISOString()
+                });
+            } catch (e) {
+                console.error('logAction error:', e);
+            }
+        }
+
         // --- รายชื่อแผนกทั้งหมด (ใช้ร่วมกันในดรอปดาวค้นหาแผนก) ---
         const DEPARTMENT_LIST = [
             'แผนกวิชาช่างยนต์', 'แผนกวิชาช่างกลโรงงาน', 'แผนกวิชาเทคนิคอุตสาหกรรม', 'แผนกวิชาเทคนิคการผลิต',
@@ -1877,6 +1920,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                     const ok = await showConfirm(`ยืนยันลบวันที่ "${d.label || d.date}"? (ข้อมูลการจองของวันนี้จะไม่ถูกลบ แต่จะไม่แสดงในตัวเลือก)`, 'ยืนยันการลบวันที่');
                     if (ok) {
                         await deleteDoc(doc(eventDatesRef, d.id));
+                        logAction('event_date_remove', 'แอดมิน: ลบวันที่เปิดจอง', 'แอดมิน', `ลบวันที่ ${d.label || d.date} (${d.date})`);
                     }
                 };
                 row.appendChild(delBtn);
@@ -1891,6 +1935,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             if (availableDates.some(d => d.date === dateVal)) { showToast('มีวันที่นี้อยู่แล้ว', 'warning'); return; }
             const newRef = doc(eventDatesRef);
             await setDoc(newRef, { date: dateVal, label: labelVal || dateVal, createdAt: serverTimestamp() });
+            logAction('event_date_add', 'แอดมิน: เพิ่มวันที่เปิดจอง', 'แอดมิน', `เพิ่มวันที่ ${labelVal || dateVal} (${dateVal})`);
             document.getElementById('admin-new-date-input').value = '';
             document.getElementById('admin-new-date-label').value = '';
         });
@@ -2623,6 +2668,8 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 resetBookingFormInputs();
                 showModal('สำเร็จ!', `บันทึกการจองพื้นที่ ${myLockedIds.join(', ')} เรียบร้อยแล้ว`, 'success');
                 showBookingSlip(myLockedIds, dept, shop, product, name, phone, allBookedDates);
+                logAction('booking_add', 'จองพื้นที่ใหม่', dept,
+                    `จองล็อค ${myLockedIds.join(', ')} วันที่ ${allBookedDates.join(', ')} | ร้าน: ${shop} | ผู้รับผิดชอบ: ${name} (${phone})`);
             } catch (err) {
                 showModal('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้', 'error');
                 bookBtn.disabled = false;
@@ -2819,6 +2866,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                     const updated = contactChannels.filter((_, i) => i !== idx);
                     try {
                         await setDoc(adminSettingsRef, { contactChannels: updated }, { merge: true });
+                        logAction('contact_channel_remove', 'แอดมิน: ลบช่องทางติดต่อ', 'แอดมิน', `ลบช่องทาง ${ch.label || ''} (${ch.value})`);
                     } catch (e) {
                         showModal('ขัดข้อง', 'ไม่สามารถลบช่องทางติดต่อได้', 'error');
                     }
@@ -2841,6 +2889,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             btn.disabled = true;
             try {
                 await setDoc(adminSettingsRef, { contactChannels: updated }, { merge: true });
+                logAction('contact_channel_add', 'แอดมิน: เพิ่มช่องทางติดต่อ', 'แอดมิน', `เพิ่มช่องทาง ${label} (${value})`);
                 document.getElementById('admin-contact-label').value = '';
                 document.getElementById('admin-contact-value').value = '';
                 document.getElementById('admin-contact-detail').value = '';
@@ -3054,6 +3103,8 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 ));
                 closeEditModal();
                 showModal('บันทึกสำเร็จ', `แก้ไขข้อมูลล็อค ${currentEditStallId} เรียบร้อยแล้ว`, 'success');
+                logAction('booking_edit', 'แก้ไขข้อมูลการจอง', currentEditStallData?.department,
+                    `แก้ไขล็อค ${currentEditStallId} วันที่ ${targetDates.join(', ')} | ร้าน: ${shop} | ผู้รับผิดชอบ: ${name} (${phone})`);
             } catch (err) {
                 showToast('ขัดข้อง: ไม่สามารถบันทึกข้อมูลได้', 'error');
             }
@@ -3069,6 +3120,8 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                     ));
                     closeEditModal();
                     showModal('คืนพื้นที่สำเร็จ', `ล็อค ${currentEditStallId} กลับมาว่างอีกครั้ง`, 'success');
+                    logAction('booking_cancel', 'ยกเลิก/คืนพื้นที่การจอง', currentEditStallData?.department,
+                        `คืนพื้นที่ล็อค ${currentEditStallId} วันที่ ${targetDates.join(', ')} | ร้าน: ${currentEditStallData?.shopName || '-'}`);
                 } catch (err) {
                     showToast('เกิดข้อผิดพลาดในการยกเลิกจอง', 'error');
                 }
@@ -3168,6 +3221,71 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
 
         // จัดวางหน้าจอใหม่สำหรับโหมดแอดมิน: ซ่อนแดชบอร์ดของฉัน
         // และย้ายกล่อง "ระบบจองพื้นที่ตลาด" กับ "เลือกวันที่ต้องการจอง" ไปไว้ด้านล่างกล่อง Admin
+        // แสดง/ซ่อน ประวัติการใช้งานทั้งหมด (แบ็คอัพ)
+        document.getElementById('toggle-action-log-btn').addEventListener('click', () => {
+            const wrapper = document.getElementById('action-log-wrapper');
+            const btn = document.getElementById('toggle-action-log-btn');
+            const willShow = wrapper.classList.contains('hidden');
+            wrapper.classList.toggle('hidden');
+            wrapper.classList.toggle('flex');
+            btn.textContent = willShow ? 'ซ่อนประวัติ' : 'แสดงประวัติ';
+        });
+
+        // เรนเดอร์ประวัติการใช้งาน จัดกลุ่มตามวันที่ทำรายการ แล้วแยกย่อยตามแผนกภายในวันนั้น
+        function renderActionLogGroups(logs) {
+            const wrapper = document.getElementById('action-log-wrapper');
+            if (!wrapper) return;
+
+            if (!logs.length) {
+                wrapper.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-3">ยังไม่มีประวัติการใช้งาน</p>';
+                return;
+            }
+
+            const byDay = {};
+            logs.forEach(l => {
+                const day = l.dayKey || (l.clientTime ? l.clientTime.slice(0, 10) : 'ไม่ทราบวันที่');
+                (byDay[day] = byDay[day] || []).push(l);
+            });
+            const days = Object.keys(byDay).sort((a, b) => b.localeCompare(a));
+
+            wrapper.innerHTML = days.map(day => {
+                const byDept = {};
+                byDay[day].forEach(l => {
+                    const dept = l.department || '-';
+                    (byDept[dept] = byDept[dept] || []).push(l);
+                });
+                const depts = Object.keys(byDept).sort((a, b) => a.localeCompare(b, 'th'));
+
+                const deptBlocks = depts.map(dept => {
+                    const rows = byDept[dept].map(l => {
+                        const t = (l.createdAt && l.createdAt.toDate) ? l.createdAt.toDate() : (l.clientTime ? new Date(l.clientTime) : null);
+                        const timeStr = t ? t.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-';
+                        return `<div class="text-[11px] border-l-2 border-slate-600 pl-2 py-1">
+                            <span class="text-slate-400">${timeStr}</span> —
+                            <span class="font-medium text-slate-100">${l.actionLabel || l.action}</span>
+                            ${l.detail ? `<div class="text-slate-400 mt-0.5">${l.detail}</div>` : ''}
+                        </div>`;
+                    }).join('');
+                    return `<div class="bg-slate-800/60 rounded-lg p-2.5">
+                        <div class="text-xs font-semibold text-emerald-300 mb-1">${dept}</div>
+                        ${rows}
+                    </div>`;
+                }).join('');
+
+                return `<div class="flex flex-col gap-2">
+                    <div class="text-sm font-bold text-white bg-slate-700/60 rounded-lg px-3 py-1.5">${formatDateLabel(day) || day} <span class="text-slate-400 font-normal text-xs">(${day})</span></div>
+                    <div class="flex flex-col gap-2 pl-2">${deptBlocks}</div>
+                </div>`;
+            }).join('');
+        }
+
+        // ฟังข้อมูลประวัติการใช้งานแบบเรียลไทม์ (ล่าสุด 500 รายการ) - เก็บถาวร ไม่มีการลบ
+        onSnapshot(query(actionLogsRef, orderBy('createdAt', 'desc'), limit(500)), (snapshot) => {
+            const actionLogsCache = [];
+            snapshot.forEach(d => actionLogsCache.push({ id: d.id, ...d.data() }));
+            renderActionLogGroups(actionLogsCache);
+        });
+
         function reorderForAdminView() {
             const myDashboard = document.getElementById('my-dashboard');
             if (myDashboard) myDashboard.classList.add('hidden');
@@ -3431,6 +3549,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             }
             try {
                 await setDoc(adminSettingsRef, { password: newPass }, { merge: true });
+                logAction('admin_password_change', 'แอดมิน: เปลี่ยนรหัสผ่านแอดมิน', 'แอดมิน', 'เปลี่ยนรหัสผ่านแอดมิน');
                 adminChangePwdModal.classList.add('hidden');
                 adminChangePwdModal.classList.remove('flex');
                 document.getElementById('admin-panel').classList.remove('hidden');
@@ -3595,6 +3714,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
 
             try {
                 await setDoc(announcementRef, payload, { merge: true });
+                logAction('announcement_save', 'แอดมิน: บันทึกประกาศ', 'แอดมิน', `บันทึกประกาศ (${active ? 'เปิดใช้งาน' : 'ปิดใช้งาน'})`);
                 pendingAnnouncementImage = null;
                 document.getElementById('admin-announce-image-input').value = '';
                 document.getElementById('admin-announce-img-status').innerText = '';
@@ -3616,6 +3736,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             btn.innerText = 'กำลังบันทึก...';
             try {
                 await setDoc(adminSettingsRef, { siteOpen: open, siteClosedMessage: message }, { merge: true });
+                logAction('site_toggle', 'แอดมิน: เปลี่ยนสถานะเปิด/ปิดเว็บ', 'แอดมิน', open ? 'เปิดใช้งานเว็บ' : 'ปิดใช้งานเว็บ');
                 showModal(open ? 'เปิดใช้งานเว็บแล้ว' : 'ปิดใช้งานเว็บแล้ว',
                     open ? 'ผู้ใช้ทั่วไปสามารถเข้าใช้งานเว็บได้ตามปกติ' : 'ผู้ใช้ทั่วไปจะเห็นหน้าจอปิดใช้งานทันที (แอดมินยังเข้าใช้งานได้)',
                     'success');
@@ -3635,6 +3756,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             }
             try {
                 await setDoc(adminSettingsRef, { maxPerDept: val }, { merge: true });
+                logAction('quota_change', 'แอดมิน: เปลี่ยนโควต้าต่อแผนก', 'แอดมิน', `ตั้งค่าโควต้าเป็น ${val} ล็อค/แผนก`);
                 showModal('สำเร็จ', `ตั้งค่าโควต้าเป็น ${val} ล็อค/แผนก เรียบร้อยแล้ว`, 'success');
             } catch (e) {
                 showModal('ขัดข้อง', 'ไม่สามารถบันทึกโควต้าได้', 'error');
@@ -3649,6 +3771,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             }
             try {
                 await setDoc(adminSettingsRef, { lockDurationMinutes: val }, { merge: true });
+                logAction('lock_duration_change', 'แอดมิน: เปลี่ยนเวลานับถอยหลังการล็อก', 'แอดมิน', `ตั้งค่าเป็น ${val} นาที`);
                 showModal('สำเร็จ', `ตั้งค่าเวลานับถอยหลังเป็น ${val} นาที เรียบร้อยแล้ว`, 'success');
             } catch (e) {
                 showModal('ขัดข้อง', 'ไม่สามารถบันทึกเวลานับถอยหลังได้', 'error');
@@ -3687,6 +3810,8 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                     );
                     await Promise.all(deletePromises);
                     showModal('สำเร็จ', `ลบข้อมูลแผนก ${dept} เรียบร้อยแล้ว จำนวน ${stallsToDelete.length} ล็อค`, 'success');
+                    logAction('admin_delete_dept', 'แอดมิน: ลบข้อมูลการจองทั้งแผนก', dept,
+                        `ลบล็อค ${stallsToDelete.map(s => s.id).join(', ')} รวม ${stallsToDelete.length} ล็อค`);
                 } catch(e) {
                     showModal('ขัดข้อง', 'เกิดข้อผิดพลาดในการลบข้อมูล', 'error');
                 }
@@ -3775,6 +3900,8 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                     });
                     await Promise.all(deletePromises);
                     showModal('ล้างข้อมูลสำเร็จ', 'ลบข้อมูลการจองทั้งหมดแล้ว', 'success');
+                    logAction('admin_clear_all', 'แอดมิน: ล้างข้อมูลการจองทั้งหมด', 'แอดมิน',
+                        `ลบข้อมูลการจองทั้งระบบ รวม ${snapshot.size} รายการ`);
                 } catch(e) {
                     showModal('ล้มเหลว', 'เกิดข้อผิดพลาดในการลบข้อมูล', 'error');
                 }
