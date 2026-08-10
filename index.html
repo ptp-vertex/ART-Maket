@@ -211,7 +211,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
         <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-7">
             <div class="text-center mb-5">
                 <h2 class="text-lg font-bold text-slate-900">เข้าสู่ระบบจองพื้นที่ตลาด</h2>
-                <p class="text-xs text-slate-500 mt-1">กรุณาเลือกแผนกของท่านก่อนเข้าใช้งาน (กรณีอื่นๆ ให้ติดต่อแอดมิน)</p>
+                <p class="text-xs text-slate-500 mt-1">กรุณาเลือกแผนกของท่านก่อนเข้าใช้งาน</p>
             </div>
             <label class="block text-[11px] font-medium text-slate-600 mb-1.5">แผนกของท่าน <span class="text-red-500">*</span></label>
             <div class="relative" id="login-department-wrap">
@@ -229,6 +229,13 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             </div>
             <p id="login-error-text" class="hidden text-xs text-red-500 mt-2">กรุณาเลือกแผนกก่อนเข้าสู่ระบบ</p>
             <button id="dept-login-btn" type="button" class="w-full mt-5 bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-medium transition-colors">เข้าสู่ระบบ</button>
+            <p class="text-xs text-slate-500 mt-3 flex items-center justify-center gap-1.5 flex-wrap">
+                <span>กรณีอื่นๆ ให้</span>
+                <button type="button" id="login-contact-admin-btn" class="inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 hover:text-blue-800 border border-blue-200 hover:bg-blue-50 rounded-full px-2.5 py-1 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    ติดต่อแอดมิน
+                </button>
+            </p>
         </div>
     </div>
 
@@ -805,7 +812,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
     </div>
 
     <!-- Contact Admin Modal -->
-    <div id="contact-admin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[100] opacity-0 transition-opacity duration-300 p-4">
+    <div id="contact-admin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[140] opacity-0 transition-opacity duration-300 p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden relative transform scale-95 transition-transform duration-300" id="contact-admin-modal-box">
             <div class="bg-blue-600 text-white p-5">
                 <h3 class="text-base font-bold flex items-center gap-2">
@@ -1630,7 +1637,16 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
 
                 optionsBox.innerHTML = '';
                 if (list.length === 0) {
-                    optionsBox.innerHTML = '<div class="px-3 py-4 text-center text-xs text-slate-400 italic">ไม่พบแผนกที่ค้นหา<br>กรณีอื่นๆ กรุณาติดต่อแอดมิน</div>';
+                    optionsBox.innerHTML = `
+                        <div class="px-3 py-4 text-center text-xs text-slate-400 italic flex flex-col items-center gap-2">
+                            <span>ไม่พบแผนกที่ค้นหา<br>กรณีอื่นๆ กรุณาติดต่อแอดมิน</span>
+                            <button type="button" class="dropdown-contact-admin-btn not-italic inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 hover:text-blue-800 border border-blue-200 hover:bg-blue-50 rounded-full px-3 py-1.5 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                ติดต่อแอดมิน
+                            </button>
+                        </div>`;
+                    const btn = optionsBox.querySelector('.dropdown-contact-admin-btn');
+                    if (btn) btn.onclick = (e) => { e.stopPropagation(); openContactAdminModal(); };
                     return;
                 }
                 list.forEach(({ opt }) => {
@@ -2738,6 +2754,8 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             }, 300);
         }
         document.getElementById('contact-admin-fab').onclick = openContactAdminModal;
+        const loginContactAdminBtn = document.getElementById('login-contact-admin-btn');
+        if (loginContactAdminBtn) loginContactAdminBtn.onclick = openContactAdminModal;
         document.getElementById('close-contact-admin-btn').onclick = closeContactAdminModal;
         contactAdminModal.addEventListener('click', (e) => { if (e.target === contactAdminModal) closeContactAdminModal(); });
 
