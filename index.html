@@ -814,7 +814,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
     </div>
 
     <!-- General Modal -->
-    <div id="custom-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[100] opacity-0 transition-opacity duration-300">
+    <div id="custom-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[160] opacity-0 transition-opacity duration-300">
         <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full mx-4 transform scale-95 transition-transform duration-300" id="modal-content-box">
             <div class="text-center">
                 <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-slate-100 mb-4" id="modal-icon-bg"></div>
@@ -997,12 +997,17 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                 <p class="text-xs text-slate-500 mt-0.5">เลือกล็อกที่ต้องการ (1 หน้า / 1 ล็อก) สำหรับพิมพ์นำไปแปะที่หน้าล็อกตลาดจริง</p>
             </div>
 
-            <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
-                <label class="flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer select-none">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                <label class="flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer select-none shrink-0">
                     <input type="checkbox" id="lock-signage-select-all" class="w-4 h-4 accent-blue-600">
                     เลือกทั้งหมด
                 </label>
-                <input type="text" id="lock-signage-filter" placeholder="พิมพ์ค้นหา ล็อก / แผนก / ร้าน..." autocomplete="off" class="border border-slate-300 rounded-lg px-3 py-1.5 text-xs w-56 focus:ring-2 focus:ring-blue-500 outline-none">
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <select id="lock-signage-date-filter" class="border border-slate-300 rounded-lg px-2 py-1.5 text-xs flex-1 sm:flex-none sm:w-40 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                        <option value="">ทุกวันที่</option>
+                    </select>
+                    <input type="text" id="lock-signage-filter" placeholder="ค้นหา ล็อก / แผนก / ร้าน..." autocomplete="off" class="border border-slate-300 rounded-lg px-3 py-1.5 text-xs flex-1 sm:w-44 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
             </div>
 
             <div id="lock-signage-list" class="flex-1 overflow-y-auto flex flex-col gap-1.5 min-h-[120px]">
@@ -1512,11 +1517,17 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                         dept: d.department || '-',
                         shop: d.shopName || '-',
                         product: d.product || '-',
-                        name: d.contactName || '-',
-                        phone: d.phone || '-'
+                        phone: d.phone || ''
                     };
                 })
                 .sort((a, b) => (a.date + a.lockId).localeCompare(b.date + b.lockId));
+        }
+
+        // ปิดบังเบอร์โทรให้แสดงแค่เลขท้ายไม่กี่ตัว (เพื่อความเป็นส่วนตัว เนื่องจากป้ายนี้จะถูกแปะไว้ที่หน้าล็อกให้คนทั่วไปเห็น)
+        function maskPhoneForSignage(phone) {
+            const digits = String(phone || '').replace(/\D/g, '');
+            if (digits.length < 4) return 'xxx-xxx-xxxx';
+            return `xxx-xxx-${digits.slice(-4)}`;
         }
 
         function syncLockSignageSelectAllState() {
@@ -1527,9 +1538,22 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             downloadBtn.disabled = !checkboxes.some(cb => cb.checked);
         }
 
+        // เติมตัวเลือก "วันที่" ในดรอปดาวน์ของป็อปอัพ ตามวันที่ที่มีการจองจริงอยู่ในระบบ
+        function populateLockSignageDateOptions() {
+            const selectEl = document.getElementById('lock-signage-date-filter');
+            if (!selectEl) return;
+            const prevValue = selectEl.value;
+            const dates = [...new Set(lockSignageEntries.map(e => e.date))].sort();
+            selectEl.innerHTML = '<option value="">ทุกวันที่</option>' +
+                dates.map(d => `<option value="${d}">${formatDateLabel(d)}</option>`).join('');
+            if (dates.includes(prevValue)) selectEl.value = prevValue;
+        }
+
         function renderLockSignageList(filterText = '') {
             const listEl = document.getElementById('lock-signage-list');
+            const dateFilterEl = document.getElementById('lock-signage-date-filter');
             lockSignageEntries = getAllBookedEntriesForSignage();
+            populateLockSignageDateOptions();
 
             if (lockSignageEntries.length === 0) {
                 listEl.innerHTML = '<p class="text-center text-slate-400 text-sm italic py-6">ยังไม่มีข้อมูลการจอง</p>';
@@ -1539,8 +1563,10 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             }
 
             const q = filterText.trim().toLowerCase();
+            const dateFilter = dateFilterEl ? dateFilterEl.value : '';
             listEl.innerHTML = '';
             lockSignageEntries.forEach(e => {
+                if (dateFilter && e.date !== dateFilter) return;
                 const searchable = `${e.lockId} ${e.dept} ${e.shop} ${formatDateLabel(e.date)}`.toLowerCase();
                 if (q && !searchable.includes(q)) return;
                 const row = document.createElement('label');
@@ -1555,7 +1581,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             });
 
             if (!listEl.children.length) {
-                listEl.innerHTML = '<p class="text-center text-slate-400 text-sm italic py-6">ไม่พบล็อกที่ตรงกับคำค้นหา</p>';
+                listEl.innerHTML = '<p class="text-center text-slate-400 text-sm italic py-6">ไม่พบล็อกที่ตรงกับเงื่อนไขที่เลือก</p>';
             }
             syncLockSignageSelectAllState();
         }
@@ -1578,6 +1604,10 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             renderLockSignageList(e.target.value);
         });
 
+        document.getElementById('lock-signage-date-filter').addEventListener('change', () => {
+            renderLockSignageList(document.getElementById('lock-signage-filter').value);
+        });
+
         document.getElementById('lock-signage-select-all').addEventListener('change', (e) => {
             document.querySelectorAll('.lock-signage-item').forEach(cb => { cb.checked = e.target.checked; });
             syncLockSignageSelectAllState();
@@ -1598,18 +1628,22 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             ctx.closePath();
         }
 
-        // วาด "ป้ายติดล็อก" 1 ใบต่อ 1 ล็อก บน canvas ความละเอียดสูง เน้นรหัสล็อกให้เด่นเห็นชัดจากระยะไกล เหมาะสำหรับพิมพ์แปะหน้าล็อกจริง
+        // ขนาดป้าย (แนวนอน) เท่ากันทุกใบ ใช้ทั้งตอนวาด canvas และตอนสร้างหน้า PDF
+        const SIGNAGE_W = 850, SIGNAGE_H = 600;
+
+        // วาด "ป้ายติดล็อก" 1 ใบต่อ 1 ล็อก บน canvas ความละเอียดสูง แนวนอน เน้นรหัสล็อกให้เด่นเห็นชัดจากระยะไกล
+        // ไม่แสดงชื่อผู้รับผิดชอบ และปิดบังเบอร์โทรบางส่วน เนื่องจากป้ายนี้จะถูกแปะไว้ในที่สาธารณะ
         async function drawLockSignageCanvas(entry) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            const W = 600, H = 850, padding = 40;
-            const RENDER_SCALE = 3; // supersampling เพื่อให้พิมพ์ออกมาคมชัด
+            const W = SIGNAGE_W, H = SIGNAGE_H, padding = 36;
+            const RENDER_SCALE = 2; // supersampling พอดีสำหรับพิมพ์ ไม่หนักเกินไปเวลาสร้างหลายใบพร้อมกัน
 
-            const logo = await loadImageSafe('logo2.png');
-            let qrImg = null;
+            let logo = null, qrImg = null;
+            try { logo = await loadImageSafe('logo2.png'); } catch (e) { /* ไม่มีโลโก้ก็ยังพิมพ์ป้ายได้ */ }
             try {
                 const receiptUrl = buildReceiptUrl([entry.lockId], [entry.date]);
-                const qrDataUrl = await QRCode.toDataURL(receiptUrl, { width: 220, margin: 1 });
+                const qrDataUrl = await QRCode.toDataURL(receiptUrl, { width: 200, margin: 1 });
                 qrImg = await loadImageFromDataUrl(qrDataUrl);
             } catch (e) { /* ไม่มี QR ก็ยังพิมพ์ป้ายได้ตามปกติ */ }
 
@@ -1629,80 +1663,85 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             topGrad.addColorStop(0.75, '#17b3a3');
             topGrad.addColorStop(1, '#7c3aed');
             ctx.fillStyle = topGrad;
-            ctx.fillRect(0, 0, W, 14);
+            ctx.fillRect(0, 0, W, 12);
 
-            let y = 46;
+            // --- คอลัมน์ซ้าย: กรอบรหัสล็อกตัวใหญ่ (จุดเด่นหลักของป้าย) ---
+            const leftX = padding, leftW = 300;
+            let ly = 34;
+
             if (logo) {
-                const logoH = 60;
+                const logoH = 46;
                 const logoW = logo.width * (logoH / logo.height);
-                ctx.drawImage(logo, (W - logoW) / 2, y, logoW, logoH);
-                y += logoH + 20;
+                ctx.drawImage(logo, leftX + (leftW - logoW) / 2, ly, logoW, logoH);
+                ly += logoH + 14;
             } else {
-                y += 15;
+                ly += 10;
             }
-
             ctx.textAlign = 'center';
             ctx.fillStyle = '#64748b';
-            ctx.font = '15px Kanit, sans-serif';
-            ctx.fillText('ตลาดนัดอาชีพ และนิทรรศการศิลปะ · UP-SKILL RE-SKILL', W / 2, y);
-            y += 34;
+            ctx.font = '12px Kanit, sans-serif';
+            const headerWrapped = wrapCanvasText(ctx, 'ตลาดนัดอาชีพ และนิทรรศการศิลปะ', leftW, '12px Kanit, sans-serif');
+            headerWrapped.forEach((line, i) => ctx.fillText(line, leftX + leftW / 2, ly + i * 16));
+            ly += headerWrapped.length * 16 + 16;
 
-            // กรอบเด่นแสดงรหัสล็อก (ส่วนสำคัญที่สุดของป้าย อ่านได้จากระยะไกล)
-            const boxH = 130;
-            const boxGrad = ctx.createLinearGradient(padding, y, W - padding, y);
+            const boxH = H - ly - 60;
+            const boxGrad = ctx.createLinearGradient(leftX, ly, leftX, ly + boxH);
             boxGrad.addColorStop(0, '#1d4ed8');
             boxGrad.addColorStop(1, '#4f46e5');
             ctx.fillStyle = boxGrad;
-            roundRect(ctx, padding, y, W - padding * 2, boxH, 18);
+            roundRect(ctx, leftX, ly, leftW, boxH, 20);
             ctx.fill();
 
             ctx.fillStyle = '#ffffff';
             ctx.font = '18px Kanit, sans-serif';
-            ctx.fillText('รหัสล็อก', W / 2, y + 34);
-            ctx.font = 'bold 64px Kanit, sans-serif';
-            ctx.fillText(entry.lockId, W / 2, y + 96);
-            y += boxH + 34;
+            ctx.fillText('รหัสล็อก', leftX + leftW / 2, ly + boxH / 2 - 34);
+            ctx.font = 'bold 76px Kanit, sans-serif';
+            ctx.fillText(entry.lockId, leftX + leftW / 2, ly + boxH / 2 + 32);
+            ly += boxH + 26;
 
-            ctx.textAlign = 'center';
-            ctx.font = '15px Kanit, sans-serif';
+            ctx.font = '14px Kanit, sans-serif';
             ctx.fillStyle = '#94a3b8';
-            ctx.fillText(formatDateLabel(entry.date), W / 2, y);
-            y += 34;
+            ctx.fillText(formatDateLabel(entry.date), leftX + leftW / 2, ly);
+
+            // --- คอลัมน์ขวา: รายละเอียดแผนก/ร้าน/สินค้า และ QR ตรวจสอบ ---
+            const rightX = leftX + leftW + 34;
+            const rightW = W - padding - rightX;
+            let ry = 44;
 
             const rows = [
                 ['แผนก', entry.dept],
                 ['ชื่อร้าน', entry.shop],
                 ['สินค้าที่ขาย', entry.product],
-                ['ผู้ติดต่อ', `${entry.name} (${entry.phone})`]
+                ['เบอร์ติดต่อ', maskPhoneForSignage(entry.phone)]
             ];
             ctx.textAlign = 'left';
             rows.forEach(([label, value]) => {
-                ctx.font = '14px Kanit, sans-serif';
+                ctx.font = '13px Kanit, sans-serif';
                 ctx.fillStyle = '#64748b';
-                ctx.fillText(label, padding, y);
-                ctx.font = 'bold 20px Kanit, sans-serif';
-                const wrapped = wrapCanvasText(ctx, value, W - padding * 2, 'bold 20px Kanit, sans-serif');
+                ctx.fillText(label, rightX, ry);
+                ctx.font = 'bold 22px Kanit, sans-serif';
+                const wrapped = wrapCanvasText(ctx, value, rightW, 'bold 22px Kanit, sans-serif');
                 ctx.fillStyle = '#0f172a';
-                wrapped.forEach((line, i) => ctx.fillText(line, padding, y + 24 + i * 26));
-                y += 24 + wrapped.length * 26 + 14;
+                wrapped.forEach((line, i) => ctx.fillText(line, rightX, ry + 26 + i * 27));
+                ry += 26 + wrapped.length * 27 + 18;
             });
 
-            y += 10;
+            ry += 6;
             ctx.strokeStyle = '#e2e8f0';
             ctx.beginPath();
-            ctx.moveTo(padding, y);
-            ctx.lineTo(W - padding, y);
+            ctx.moveTo(rightX, ry);
+            ctx.lineTo(rightX + rightW, ry);
             ctx.stroke();
-            y += 26;
+            ry += 22;
 
             if (qrImg) {
-                const qrSize = 150;
-                ctx.drawImage(qrImg, (W - qrSize) / 2, y, qrSize, qrSize);
-                y += qrSize + 14;
-                ctx.textAlign = 'center';
-                ctx.font = '12px Kanit, sans-serif';
+                const qrSize = Math.min(120, H - ry - 30);
+                ctx.drawImage(qrImg, rightX, ry, qrSize, qrSize);
+                ctx.textAlign = 'left';
+                ctx.font = '11px Kanit, sans-serif';
                 ctx.fillStyle = '#94a3b8';
-                ctx.fillText('สแกนเพื่อตรวจสอบข้อมูลการจองนี้', W / 2, y);
+                const qrCaption = wrapCanvasText(ctx, 'สแกนเพื่อตรวจสอบข้อมูลการจองนี้', rightW - qrSize - 14, '11px Kanit, sans-serif');
+                qrCaption.forEach((line, i) => ctx.fillText(line, rightX + qrSize + 14, ry + 20 + i * 15));
             }
 
             return canvas;
@@ -1723,40 +1762,54 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             progress.classList.remove('hidden');
             progress.classList.add('flex');
 
+            // รอฟอนต์ Kanit โหลดให้ครบก่อนวาด เพื่อให้ตัวหนังสือคมชัดและตัดบรรทัดถูกต้อง (ทำครั้งเดียวนอกลูป)
             try {
-                // รอฟอนต์ Kanit โหลดให้ครบก่อนวาด เพื่อให้ตัวหนังสือคมชัดและตัดบรรทัดถูกต้อง
+                await Promise.all([
+                    document.fonts.load('12px Kanit'), document.fonts.load('bold 76px Kanit'),
+                    document.fonts.load('bold 22px Kanit'), document.fonts.load('18px Kanit')
+                ]);
+                await document.fonts.ready;
+            } catch (e) { /* บางเบราว์เซอร์อาจไม่รองรับ FontFace API เต็มรูปแบบ ข้ามไปได้ */ }
+
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [SIGNAGE_W, SIGNAGE_H] });
+            let pageCount = 0;
+            const failedLockIds = [];
+
+            // สร้างทีละใบแบบ sequential (ไม่ทำพร้อมกันทั้งหมด) เพื่อลดโอกาสหน่วยความจำพุ่งเวลาสร้างหลายใบ
+            // และดักข้อผิดพลาดรายใบ ถ้าใบไหนพลาดจะข้ามไปทำใบถัดไปต่อ ไม่ทำให้ทั้งชุดล้มเหลว
+            for (let i = 0; i < entries.length; i++) {
+                progressText.innerText = `กำลังสร้าง PDF... (${i + 1}/${entries.length})`;
                 try {
-                    await Promise.all([
-                        document.fonts.load('15px Kanit'), document.fonts.load('bold 64px Kanit'),
-                        document.fonts.load('bold 20px Kanit'), document.fonts.load('18px Kanit')
-                    ]);
-                    await document.fonts.ready;
-                } catch (e) { /* บางเบราว์เซอร์อาจไม่รองรับ FontFace API เต็มรูปแบบ ข้ามไปได้ */ }
-
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [600, 850] });
-
-                for (let i = 0; i < entries.length; i++) {
-                    progressText.innerText = `กำลังสร้าง PDF... (${i + 1}/${entries.length})`;
                     const canvas = await drawLockSignageCanvas(entries[i]);
                     const imgData = canvas.toDataURL('image/png');
-                    if (i > 0) pdf.addPage([600, 850], 'portrait');
-                    pdf.addImage(imgData, 'PNG', 0, 0, 600, 850);
-                    await new Promise(r => setTimeout(r, 0)); // ให้ UI มีโอกาสอัปเดตข้อความ progress ระหว่างวนลูป
+                    if (pageCount > 0) pdf.addPage([SIGNAGE_W, SIGNAGE_H], 'landscape');
+                    pdf.addImage(imgData, 'PNG', 0, 0, SIGNAGE_W, SIGNAGE_H, undefined, 'FAST');
+                    pageCount++;
+                } catch (e) {
+                    console.error('สร้างป้ายล็อก', entries[i].lockId, 'ไม่สำเร็จ:', e);
+                    failedLockIds.push(entries[i].lockId);
                 }
+                await new Promise(r => setTimeout(r, 30)); // เว้นจังหวะเล็กน้อยให้ UI/เบราว์เซอร์ตอบสนอง ลดโอกาสค้างหรือหน่วยความจำพุ่ง
+            }
 
-                const filename = entries.length === 1
-                    ? `ป้ายติดล็อก-${entries[0].lockId}.pdf`
-                    : `ป้ายติดล็อก-ทั้งหมด-${entries.length}ล็อก.pdf`;
-                pdf.save(filename);
-            } catch (e) {
-                console.error(e);
-                showModal('ขัดข้อง', 'เกิดข้อผิดพลาดในการสร้าง PDF กรุณาลองใหม่อีกครั้ง', 'error');
-            } finally {
-                btn.disabled = false;
-                closeBtn.disabled = false;
-                progress.classList.add('hidden');
-                progress.classList.remove('flex');
+            progress.classList.add('hidden');
+            progress.classList.remove('flex');
+            btn.disabled = false;
+            closeBtn.disabled = false;
+
+            if (pageCount === 0) {
+                showModal('ขัดข้อง', 'ไม่สามารถสร้าง PDF ได้เลยสักใบ กรุณาลองใหม่อีกครั้ง', 'error');
+                return;
+            }
+
+            const filename = entries.length === 1
+                ? `ป้ายติดล็อก-${entries[0].lockId}.pdf`
+                : `ป้ายติดล็อก-ทั้งหมด-${pageCount}ล็อก.pdf`;
+            pdf.save(filename);
+
+            if (failedLockIds.length) {
+                showModal('สร้าง PDF สำเร็จบางส่วน', `สร้างป้ายสำเร็จ ${pageCount} ใบ แต่ล็อก ${failedLockIds.join(', ')} สร้างไม่สำเร็จ กรุณาลองสร้างเฉพาะล็อกเหล่านั้นใหม่อีกครั้ง`, 'warning');
             }
         });
         // ==================== จบระบบ PDF ป้ายติดล็อก ====================
