@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -1517,6 +1518,7 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
                         dept: d.department || '-',
                         shop: d.shopName || '-',
                         product: d.product || '-',
+                        name: d.contactName || '',
                         phone: d.phone || ''
                     };
                 })
@@ -1528,6 +1530,14 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             const digits = String(phone || '').replace(/\D/g, '');
             if (digits.length < 4) return 'xxx-xxx-xxxx';
             return `xxx-xxx-${digits.slice(-4)}`;
+        }
+
+        // ปิดบังชื่อผู้รับผิดชอบให้แสดงแค่ตัวอักษรแรกๆ (เพื่อความเป็นส่วนตัว เนื่องจากป้ายนี้จะถูกแปะไว้ที่หน้าล็อกให้คนทั่วไปเห็น)
+        function maskNameForSignage(name) {
+            const trimmed = String(name || '').trim();
+            if (!trimmed || trimmed === '-') return '-';
+            const visible = trimmed.slice(0, 2);
+            return `${visible}xxxxx`;
         }
 
         function syncLockSignageSelectAllState() {
@@ -1693,10 +1703,10 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             ctx.fill();
 
             ctx.fillStyle = '#ffffff';
-            ctx.font = '18px Kanit, sans-serif';
-            ctx.fillText('รหัสล็อก', leftX + leftW / 2, ly + boxH / 2 - 34);
-            ctx.font = 'bold 76px Kanit, sans-serif';
-            ctx.fillText(entry.lockId, leftX + leftW / 2, ly + boxH / 2 + 32);
+            ctx.font = 'bold 22px Kanit, sans-serif';
+            ctx.fillText('รหัสล็อก', leftX + leftW / 2, ly + boxH / 2 - 52);
+            ctx.font = 'bold 118px Kanit, sans-serif';
+            ctx.fillText(entry.lockId, leftX + leftW / 2, ly + boxH / 2 + 44);
             ly += boxH + 26;
 
             ctx.font = '14px Kanit, sans-serif';
@@ -1706,33 +1716,34 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             // --- คอลัมน์ขวา: รายละเอียดแผนก/ร้าน/สินค้า และ QR ตรวจสอบ ---
             const rightX = leftX + leftW + 34;
             const rightW = W - padding - rightX;
-            let ry = 44;
+            let ry = 38;
 
             const rows = [
                 ['แผนก', entry.dept],
                 ['ชื่อร้าน', entry.shop],
                 ['สินค้าที่ขาย', entry.product],
+                ['ผู้รับผิดชอบ', maskNameForSignage(entry.name)],
                 ['เบอร์ติดต่อ', maskPhoneForSignage(entry.phone)]
             ];
             ctx.textAlign = 'left';
             rows.forEach(([label, value]) => {
-                ctx.font = '13px Kanit, sans-serif';
+                ctx.font = '12px Kanit, sans-serif';
                 ctx.fillStyle = '#64748b';
                 ctx.fillText(label, rightX, ry);
-                ctx.font = 'bold 22px Kanit, sans-serif';
-                const wrapped = wrapCanvasText(ctx, value, rightW, 'bold 22px Kanit, sans-serif');
+                ctx.font = 'bold 20px Kanit, sans-serif';
+                const wrapped = wrapCanvasText(ctx, value, rightW, 'bold 20px Kanit, sans-serif');
                 ctx.fillStyle = '#0f172a';
-                wrapped.forEach((line, i) => ctx.fillText(line, rightX, ry + 26 + i * 27));
-                ry += 26 + wrapped.length * 27 + 18;
+                wrapped.forEach((line, i) => ctx.fillText(line, rightX, ry + 23 + i * 24));
+                ry += 23 + wrapped.length * 24 + 13;
             });
 
-            ry += 6;
+            ry += 4;
             ctx.strokeStyle = '#e2e8f0';
             ctx.beginPath();
             ctx.moveTo(rightX, ry);
             ctx.lineTo(rightX + rightW, ry);
             ctx.stroke();
-            ry += 22;
+            ry += 20;
 
             if (qrImg) {
                 const qrSize = Math.min(120, H - ry - 30);
@@ -1765,8 +1776,8 @@ var QRCode=function(t){"use strict";var r,e=function(){return"function"==typeof 
             // รอฟอนต์ Kanit โหลดให้ครบก่อนวาด เพื่อให้ตัวหนังสือคมชัดและตัดบรรทัดถูกต้อง (ทำครั้งเดียวนอกลูป)
             try {
                 await Promise.all([
-                    document.fonts.load('12px Kanit'), document.fonts.load('bold 76px Kanit'),
-                    document.fonts.load('bold 22px Kanit'), document.fonts.load('18px Kanit')
+                    document.fonts.load('12px Kanit'), document.fonts.load('bold 118px Kanit'),
+                    document.fonts.load('bold 20px Kanit'), document.fonts.load('bold 22px Kanit')
                 ]);
                 await document.fonts.ready;
             } catch (e) { /* บางเบราว์เซอร์อาจไม่รองรับ FontFace API เต็มรูปแบบ ข้ามไปได้ */ }
